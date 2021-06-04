@@ -59,9 +59,26 @@ run-docker:
 	@bash gdrive_download.sh https://drive.google.com/file/d/1Wqf9zHLd6bOc_eN3nbs8y1L3P1JDvZFe/view
 
 %/Ecoli_K12_MG1655.CDS.gff3: data/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.gff3
-	@CMD='grep -P "NC_000913\.3\tRefSeq\tCDS" $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.gff3 > Ecoli_K12_MG1655.CDS.gff3' $(MAKE) run-docker
+	@-CMD='grep -P "NC_000913\.3\tRefSeq\tCDS" $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.gff3 > Ecoli_K12_MG1655.CDS.gff3' $(MAKE) run-docker
 	@mv Ecoli_K12_MG1655.CDS.gff3 $(FULL_DATA_DIR)/Ecoli_K12_MG1655.CDS.gff3
 
-workflow: data/Ecoli_K12_MG1655.sort.bam.index data/Ecoli_K12_MG1655.CDS.gff3 data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html
-	@CMD="bedtools flank -s -l 10 -r 50 -i $(DATA_DIR)/Ecoli_K12_MG1655.CDS.gff3 -g ecoli_genome_file > Ecoli_K12_MG1655.CDS.UTR.gff" $(MAKE) run-docker
+%/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna.fai: data/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna
+	@CMD="samtools faidx $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna" $(MAKE) run-docker
+
+%/ecoli.genome: data/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna.fai
+	@bash make_genome.sh $(FULL_DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna.fai $(FULL_DATA_DIR)/ecoli.genome
+
+%/Ecoli_K12_MG1655.CDS.UTR.gff: data/ecoli.genome data/Ecoli_K12_MG1655.CDS.gff3
+	@CMD="bedtools flank -s -l 10 -r 50 -i $(DATA_DIR)/Ecoli_K12_MG1655.CDS.gff3 -g $(DATA_DIR)/ecoli.genome > Ecoli_K12_MG1655.CDS.UTR.gff" $(MAKE) run-docker
 	@mv Ecoli_K12_MG1655.CDS.UTR.gff $(FULL_DATA_DIR)/Ecoli_K12_MG1655.CDS.UTR.gff
+
+%/Ecoli_K12_MG1655.5UTR3.gff: data/Ecoli_K12_MG1655.CDS.UTR.gff data/Ecoli_K12_MG1655.CDS.gff3
+	@CMD="bedtools subtract -s -F 1.0 -a $(DATA_DIR)/Ecoli_K12_MG1655.CDS.UTR.gff -b $(DATA_DIR)/Ecoli_K12_MG1655.CDS.gff3 > Ecoli_K12_MG1655.5UTR3.gff" $(MAKE) run-docker
+	@mv Ecoli_K12_MG1655.5UTR3.gff $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR3.gff
+
+%/Ecoli_K12_MG1655.5UTR3.cov: data/Ecoli_K12_MG1655.sort.bam data/Ecoli_K12_MG1655.5UTR3.gff
+	@sort -k 4,4n $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR3.gff > $(FULL_DATA_DIR)/Ecoli_K12_MG1655.sort.5UTR3.bed
+	@CMD="bedtools coverage -sorted -s -f 0.30 -a $(DATA_DIR)/Ecoli_K12_MG1655.sort.5UTR3.bed -b $(DATA_DIR)/Ecoli_K12_MG1655.sort.bam > Ecoli_K12_MG1655.5UTR3.cov" $(MAKE) run-docker
+	@mv Ecoli_K12_MG1655.5UTR3.cov $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR3.cov
+
+workflow: data/Ecoli_K12_MG1655.sort.bam.index data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html data/Ecoli_K12_MG1655.5UTR3.cov
