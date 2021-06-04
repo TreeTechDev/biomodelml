@@ -9,3 +9,7 @@ RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
     conda config --add channels bioconda &&\
     conda config --add channels conda-forge &&\
     conda install -c bioconda fastp bowtie2 sra-tools fastqc trimmomatic picard samtools bedtools cd-hit emboss
+
+RUN apt update && apt -y install multiarch-support &&\
+    wget http://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb &&\
+    dpkg -i libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb

@@ -29,4 +29,39 @@ run-docker:
 	@-rm $(FULL_DATA_DIR)/trim.stats 
 	@CMD="trimmomatic PE -threads 4 -phred33 -trimlog $(DATA_DIR)/trim.log -summary $(DATA_DIR)/trim.stats -quiet $(DATA_DIR)/SRR8173221_1.fastq.gz $(DATA_DIR)/SRR8173221_2.fastq.gz $(DATA_DIR)/SRR8173221_1.paired.fastq.gz $(DATA_DIR)/SRR8173221_1.unpaired.fastq.gz $(DATA_DIR)/SRR8173221_2.paired.fastq.gz $(DATA_DIR)/SRR8173221_2.unpaired.fastq.gz ILLUMINACLIP:$(DATA_DIR)/ALL_PE.fa:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:20 MINLEN:20" $(MAKE) run-docker
 
-workflow: data/trim.stats
+%.html: data/trim.stats
+	@-rm $(FULL_DATA_DIR)/*.html
+	@CMD="fastqc -q -t 4 $(DATA_DIR)/SRR8173221_1.paired.fastq.gz $(DATA_DIR)/SRR8173221_1.unpaired.fastq.gz $(DATA_DIR)/SRR8173221_2.paired.fastq.gz $(DATA_DIR)/SRR8173221_2.unpaired.fastq.gz" $(MAKE) run-docker
+
+%.fna:
+	@bash gdrive_download.sh https://drive.google.com/file/d/1_o7WjLJ7DLRPLLJUBjSofj46SxbDAbNP/view
+
+%.bt2: data/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna
+	@-rm $(FULL_DATA_DIR)/*.bt2
+	@CMD="bowtie2-build --quiet $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna $(DATA_DIR)/Ecoli_K12_MG1655" $(MAKE) run-docker
+
+%.sam: data/Ecoli_K12_MG1655.1.bt2 data/Ecoli_K12_MG1655.2.bt2 data/Ecoli_K12_MG1655.3.bt2 data/Ecoli_K12_MG1655.4.bt2 data/Ecoli_K12_MG1655.rev.1.bt2 data/Ecoli_K12_MG1655.rev.2.bt2
+	@CMD="bowtie2 --quiet --rg-id --very-sensitive -x $(DATA_DIR)/Ecoli_K12_MG1655 -1 $(DATA_DIR)/SRR8173221_1.paired.fastq.gz -2 $(DATA_DIR)/SRR8173221_2.paired.fastq.gz -S $(DATA_DIR)/Ecoli_K12_MG1655.sam" $(MAKE) run-docker
+
+%/picard.log: data/Ecoli_K12_MG1655.sam
+	@CMD="picard ValidateSamFile --INPUT $(DATA_DIR)/Ecoli_K12_MG1655.sam --OUTPUT $(DATA_DIR)/picard.log --REFERENCE_SEQUENCE $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna --MODE SUMMARY" $(MAKE) run-docker
+
+%/Ecoli_K12_MG1655.bam: data/picard.log
+	@CMD="samtools view --threads 4 --output-fmt bam $(DATA_DIR)/Ecoli_K12_MG1655.sam -o $(DATA_DIR)/Ecoli_K12_MG1655.bam" $(MAKE) run-docker
+
+%/Ecoli_K12_MG1655.sort.bam: data/Ecoli_K12_MG1655.bam
+	@CMD="samtools sort --threads 4 --output-fmt bam $(DATA_DIR)/Ecoli_K12_MG1655.bam -o $(DATA_DIR)/Ecoli_K12_MG1655.sort.bam" $(MAKE) run-docker
+
+%/Ecoli_K12_MG1655.sort.bam.index: data/Ecoli_K12_MG1655.sort.bam
+	@CMD="samtools index -b -@ 4 $(DATA_DIR)/Ecoli_K12_MG1655.sort.bam $(DATA_DIR)/Ecoli_K12_MG1655.sort.bam.index" $(MAKE) run-docker
+
+%/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.gff3:
+	@bash gdrive_download.sh https://drive.google.com/file/d/1Wqf9zHLd6bOc_eN3nbs8y1L3P1JDvZFe/view
+
+%/Ecoli_K12_MG1655.CDS.gff3: data/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.gff3
+	@CMD='grep -P "NC_000913\.3\tRefSeq\tCDS" $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.gff3 > Ecoli_K12_MG1655.CDS.gff3' $(MAKE) run-docker
+	@mv Ecoli_K12_MG1655.CDS.gff3 $(FULL_DATA_DIR)/Ecoli_K12_MG1655.CDS.gff3
+
+workflow: data/Ecoli_K12_MG1655.sort.bam.index data/Ecoli_K12_MG1655.CDS.gff3 data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html
+	@CMD="bedtools flank -s -l 10 -r 50 -i $(DATA_DIR)/Ecoli_K12_MG1655.CDS.gff3 -g ecoli_genome_file > Ecoli_K12_MG1655.CDS.UTR.gff" $(MAKE) run-docker
+	@mv Ecoli_K12_MG1655.CDS.UTR.gff $(FULL_DATA_DIR)/Ecoli_K12_MG1655.CDS.UTR.gff
