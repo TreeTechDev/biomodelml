@@ -81,4 +81,13 @@ run-docker:
 	@CMD="bedtools coverage -sorted -s -f 0.30 -a $(DATA_DIR)/Ecoli_K12_MG1655.sort.5UTR3.bed -b $(DATA_DIR)/Ecoli_K12_MG1655.sort.bam > Ecoli_K12_MG1655.5UTR3.cov" $(MAKE) run-docker
 	@mv Ecoli_K12_MG1655.5UTR3.cov $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR3.cov
 
-workflow: data/Ecoli_K12_MG1655.sort.bam.index data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html data/Ecoli_K12_MG1655.5UTR3.cov
+%.mRNA: data/Ecoli_K12_MG1655.5UTR3.cov
+	@grep -P "50\t50\t1\.0000000$$" $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR3.cov | sed 's/ /_/g' | sort -k 10,10nr > $(FULL_DATA_DIR)/Ecoli_K12_MG1655.3UTR.mRNA
+	@grep -P "10\t10\t1\.0000000$$" $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR3.cov | sed 's/ /_/g' | sort -k 10,10nr > $(FULL_DATA_DIR)/Ecoli_K12_MG1655.5UTR.mRNA
+
+%.mRNA.seq: data/Ecoli_K12_MG1655.5UTR.mRNA data/Ecoli_K12_MG1655.3UTR.mRNA
+	@CMD="bedtools getfasta -fullHeader -s -fi $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna -bed $(DATA_DIR)/Ecoli_K12_MG1655.5UTR.mRNA > Ecoli_K12_MG1655.5UTR.mRNA.seq" $(MAKE) run-docker
+	@CMD="bedtools getfasta -fullHeader -s -fi $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna -bed $(DATA_DIR)/Ecoli_K12_MG1655.3UTR.mRNA > Ecoli_K12_MG1655.3UTR.mRNA.seq" $(MAKE) run-docker
+	@mv *.mRNA.seq $(FULL_DATA_DIR)/
+
+workflow: data/Ecoli_K12_MG1655.sort.bam.index data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html data/Ecoli_K12_MG1655.3UTR.mRNA.seq data/Ecoli_K12_MG1655.5UTR.mRNA.seq
