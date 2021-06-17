@@ -16,14 +16,14 @@ build:
 run-docker:
 	@docker run -it -v $(FULL_DATA_DIR):$(DATA_DIR) $(IMG_NAME) $(CMD)
 
-%.fastq.gz:
+%1.fastq.gz %2.fastq.gz:
 	@CMD="fastq-dump --split-3 --gzip --outdir $(DATA_DIR) SRR8173221 -v" $(MAKE) run-docker
 
 %paired.fastq.gz: data/SRR8173221_1.fastq.gz data/SRR8173221_2.fastq.gz
 	@CMD="git clone https://github.com/timflutre/trimmomatic $(DATA_DIR)/trimmomatic" $(MAKE) run-docker
 	@CMD="cat $(TRIMM_DIR)/NexteraPE-PE.fa $(TRIMM_DIR)/TruSeq2-PE.fa $(TRIMM_DIR)/TruSeq3-PE-2.fa $(TRIMM_DIR)/TruSeq3-PE.fa > ALL_PE.fa" $(MAKE) run-docker
 	@mv ALL_PE.fa $(FULL_DATA_DIR)/ALL_PE.fa
-	@CMD="trimmomatic PE -threads 4 -phred33 -trimlog $(DATA_DIR)/trim.log -summary $(DATA_DIR)/trim.stats -quiet $(DATA_DIR)/SRR8173221_1.fastq.gz $(DATA_DIR)/SRR8173221_2.fastq.gz $(DATA_DIR)/SRR8173221_1.paired.fastq.gz $(DATA_DIR)/SRR8173221_1.unpaired.fastq.gz $(DATA_DIR)/SRR8173221_2.paired.fastq.gz $(DATA_DIR)/SRR8173221_2.unpaired.fastq.gz ILLUMINACLIP:$(DATA_DIR)/ALL_PE.fa:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:20 MINLEN:20" $(MAKE) run-docker
+	@CMD="trimmomatic PE -threads 20 -phred33 -trimlog $(DATA_DIR)/trim.log -summary $(DATA_DIR)/trim.stats -quiet $(DATA_DIR)/SRR8173221_1.fastq.gz $(DATA_DIR)/SRR8173221_2.fastq.gz $(DATA_DIR)/SRR8173221_1.paired.fastq.gz $(DATA_DIR)/SRR8173221_1.unpaired.fastq.gz $(DATA_DIR)/SRR8173221_2.paired.fastq.gz $(DATA_DIR)/SRR8173221_2.unpaired.fastq.gz ILLUMINACLIP:$(DATA_DIR)/ALL_PE.fa:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:20 MINLEN:20" $(MAKE) run-docker
 
 %.html: data/SRR8173221_1.paired.fastq.gz data/SRR8173221_2.paired.fastq.gz data/SRR8173221_1.unpaired.fastq.gz data/SRR8173221_2.unpaired.fastq.gz
 	@CMD="fastqc -q -t 4 $(DATA_DIR)/SRR8173221_1.paired.fastq.gz $(DATA_DIR)/SRR8173221_1.unpaired.fastq.gz $(DATA_DIR)/SRR8173221_2.paired.fastq.gz $(DATA_DIR)/SRR8173221_2.unpaired.fastq.gz" $(MAKE) run-docker
@@ -36,7 +36,7 @@ run-docker:
 
 %Ecoli_K12_MG1655.sam: data/Ecoli_K12_MG1655.1.bt2 data/Ecoli_K12_MG1655.2.bt2 data/Ecoli_K12_MG1655.3.bt2 data/Ecoli_K12_MG1655.4.bt2 data/Ecoli_K12_MG1655.rev.1.bt2 data/Ecoli_K12_MG1655.rev.2.bt2 data/SRR8173221_1.paired.fastq.gz data/SRR8173221_2.paired.fastq.gz data/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna
 	@CMD="bowtie2 --quiet --rg-id --very-sensitive -x $(DATA_DIR)/Ecoli_K12_MG1655 -1 $(DATA_DIR)/SRR8173221_1.paired.fastq.gz -2 $(DATA_DIR)/SRR8173221_2.paired.fastq.gz -S $(DATA_DIR)/Ecoli_K12_MG1655.sam" $(MAKE) run-docker
-	@CMD="picard ValidateSamFile --INPUT $(DATA_DIR)/Ecoli_K12_MG1655.sam --OUTPUT $(DATA_DIR)/picard.log --REFERENCE_SEQUENCE $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna --MODE SUMMARY" $(MAKE) run-docker
+	@-CMD="picard ValidateSamFile --INPUT $(DATA_DIR)/Ecoli_K12_MG1655.sam --OUTPUT $(DATA_DIR)/picard.log --REFERENCE_SEQUENCE $(DATA_DIR)/Escherichia_coli_str_K-12_substr_MG1655_complete_genome_NCBI_Reference_Sequence_NC_000913.3.fna --MODE SUMMARY" $(MAKE) run-docker
 
 %/Ecoli_K12_MG1655.bam: data/Ecoli_K12_MG1655.sam
 	@CMD="samtools view --threads 4 --output-fmt bam $(DATA_DIR)/Ecoli_K12_MG1655.sam -o $(DATA_DIR)/Ecoli_K12_MG1655.bam" $(MAKE) run-docker
@@ -84,5 +84,7 @@ run-docker:
 	@CMD="cd-hit-est -c 1 -G 1 -b 5 -l 14 -d 0 -s 1 -g 1 -sc 0 -M 1000 -T 4 -n 5 -i $(DATA_DIR)/Ecoli_K12_MG1655.3UTR.mRNA.seq -o $(DATA_DIR)/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit" $(MAKE) run-docker
 
 workflow: data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/Ecoli_K12_MG1655.5UTR.mRNA.seq.cdhit
+	@-rm data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit.csv
+	@python src/matchmatrix.py data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit.csv
 
 reports: data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html
