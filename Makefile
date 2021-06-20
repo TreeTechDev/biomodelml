@@ -84,7 +84,7 @@ run-docker:
 	@CMD="cd-hit-est -c 1 -G 1 -b 5 -l 14 -d 0 -s 1 -g 1 -sc 0 -M 1000 -T 4 -n 5 -i $(DATA_DIR)/Ecoli_K12_MG1655.3UTR.mRNA.seq -o $(DATA_DIR)/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit" $(MAKE) run-docker
 
 workflow: data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/Ecoli_K12_MG1655.5UTR.mRNA.seq.cdhit
-	@-rm data/*.csv
-	@python src/matchmatrix.py data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit
+	@-rm data/matrix/*.csv
+	@python src/matchmatrix.py data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/matrix
 
 reports: data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html
