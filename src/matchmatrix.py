@@ -24,6 +24,7 @@ def create_file(title: str, sequence: str):
     output_csvs[title[1:-1]] = manager.Lock()
     with open(f"{outpath}/{title[1:-1]}.csv", "a") as csv:
         csv.write("sequence,"+",".join(sequence[:-1])+"\n")
+        csv.flush()
 
 def get_file(title: str) -> TextIO:
     if not opened_csvs.get(title[1:-1]):
@@ -36,11 +37,9 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
     str_matrix = ",".join([str(m) for m in matrix])
-    output_csvs[title[1:-1]].acquire()
     opened_csvs = get_file(ref_title)
     opened_csvs.write(f"{title[1:-1]},{str_matrix}\n")
     opened_csvs.flush()
-    output_csvs[title[1:-1]].release()
 
 
 with open(fasta, "r") as sequences:
