@@ -6,8 +6,6 @@ from typing import List, Iterable, TextIO
 fasta = sys.argv[1]
 outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()/2)
-manager = multiprocessing.Manager()
-output_csvs = manager.dict()
 opened_csvs = dict()
 
 def build_matrix(seq1: str, seq2: str) -> List[str]:
@@ -21,7 +19,6 @@ def build_matrix(seq1: str, seq2: str) -> List[str]:
     return matrix
 
 def create_file(title: str, sequence: str):
-    output_csvs[title[1:-1]] = manager.Lock()
     with open(f"{outpath}/{title[1:-1]}.csv", "a") as csv:
         csv.write("sequence,"+",".join(sequence[:-1])+"\n")
         csv.flush()
