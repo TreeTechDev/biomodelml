@@ -1,12 +1,14 @@
 import sys
 import itertools
 import multiprocessing
-from typing import List, Iterable
+from typing import List, Iterable, TextIO
 
 fasta = sys.argv[1]
 outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()/2)
-output_csvs = {}
+manager = multiprocessing.Manager()
+output_csvs = manager.dict()
+opened_csvs = dict()
 
 def build_matrix(seq1: str, seq2: str) -> List[str]:
     matrix = [0]*len(seq1)
@@ -18,22 +20,35 @@ def build_matrix(seq1: str, seq2: str) -> List[str]:
                 matrix[idx]-=4
     return matrix
 
-def get_file(title: str, sequence: str):
-    if output_csvs.get(title):
-        return output_csvs[title]
-    else:
-        output_csvs[title] = open(f"{outpath}/{title}.csv", "a")
-        output_csvs[title].write("sequence,"+",".join(sequence[:-1])+"\n")
-        return output_csvs[title]
+def create_file(title: str, sequence: str):
+    output_csvs[title[1:-1]] = manager.Lock()
+    with open(f"{outpath}/{title[1:-1]}.csv", "a") as csv:
+        csv.write("sequence,"+",".join(sequence[:-1])+"\n")
+
+def get_file(title: str) -> TextIO:
+    if not opened_csvs.get(title[1:-1]):
+        opened_csvs[title[1:-1]] = open(f"{outpath}/{title[1:-1]}.csv", "a")
+    
+    return opened_csvs[title[1:-1]]
 
 def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     ref_title, ref_sequence = ref_fasta
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
     str_matrix = ",".join([str(m) for m in matrix])
-    output_csv = get_file(ref_title[1:-1], ref_sequence)
-    output_csv.write(f"{title[1:-1]},{str_matrix}\n")
+    output_csvs[title[1:-1]].acquire()
+    opened_csvs = get_file(ref_title)
+    opened_csvs.write(f"{title[1:-1]},{str_matrix}\n")
+    opened_csvs.flush()
+    output_csvs[title[1:-1]].release()
 
+
+with open(fasta, "r") as sequences:
+    with multiprocessing.Pool(processes) as pool:
+        pool.starmap(
+            create_file,
+            itertools.zip_longest(sequences, sequences)
+        )
 
 with open(fasta, "r") as sequences:
     with multiprocessing.Pool(processes) as pool:
@@ -42,5 +57,5 @@ with open(fasta, "r") as sequences:
             itertools.product(
                 itertools.zip_longest(sequences, sequences), repeat=2))
 
-for csv in output_csvs:
+for csv in opened_csvs:
     csv.close()
