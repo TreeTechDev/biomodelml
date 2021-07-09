@@ -46,7 +46,7 @@ with multiprocessing.Pool(processes) as pool:
         args
     )
 
-print(f"writing parquet with clusteres...")
+print("writing parquet with clusteres...")
 parquet_schema = pyarrow.Table.from_pandas(df=output_dfs[0], preserve_index=True).schema
 parquet_writer = pq.ParquetWriter(parquet_file, parquet_schema, compression='snappy')
 

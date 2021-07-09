@@ -42,7 +42,8 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     opened_csvs.write(f"{title[1:-1]},{str_matrix}\n")
     opened_csvs.flush()
 
-
+with open(fasta, "r") as sequences:
+    print(f"starting to build files for {len(sequences.readlines())} sequences")
 with open(fasta, "r") as sequences:
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
@@ -50,6 +51,7 @@ with open(fasta, "r") as sequences:
             itertools.zip_longest(sequences, sequences)
         )
 
+print("starting to build matrix for sequences")
 with open(fasta, "r") as sequences:
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(

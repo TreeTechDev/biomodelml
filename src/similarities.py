@@ -28,13 +28,15 @@ with open(f"{file_path}.similarity.csv", "w") as sim:
     sim.write("column,compare,similarity,rho,p_rho,tau,p_tau")
 
 columns = list(df.columns)[1:]
-
 args = [(df, column, compare) for i, column in enumerate(columns) for compare in columns[i:]]
+
+print(f"starting similarity check with {len(args)} combinations...")
 with multiprocessing.Pool(processes) as pool:
     pool.starmap(
         similarity,
         args
     )
 
+print("writing similarities to file...")
 with open(f"{file_path}.similarity.csv", "a") as sim:
     sim.writelines(output_values)
