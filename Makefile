@@ -85,7 +85,9 @@ run-docker:
 
 workflow: data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/Ecoli_K12_MG1655.5UTR.mRNA.seq.cdhit
 	@-rm data/matrix/*.csv
+	@-rm data/matrix/*.parquet
 	@python src/matchmatrix.py data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/matrix
 	@python src/cluster.py data/matrix/
+	@python src/similarities.py data/matrix/cluster_matrix.parquet
 
 reports: data/SRR8173221_1.paired_fastqc.html data/SRR8173221_1.unpaired_fastqc.html data/SRR8173221_2.paired_fastqc.html data/SRR8173221_2.unpaired_fastqc.html

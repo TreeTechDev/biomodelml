@@ -2,3 +2,4 @@ hdbscan==0.8.27
 pandas==1.1.5
 toolz==0.11.1
 vaex==4.3.0
+scipy==1.5.4
