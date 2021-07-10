@@ -1,3 +1,4 @@
+import numpy
 import pandas
 import hdbscan
 import multiprocessing
@@ -20,21 +21,25 @@ def clusterize(path: str, filename: str) -> pandas.DataFrame:
     df = pandas.read_csv(csv_file).set_index("sequence")
     clusterer = hdbscan.HDBSCAN(
         cluster_selection_method="leaf",
-        min_samples=8,
-        min_cluster_size=5,
+        min_samples=2,
+        min_cluster_size=3,
         prediction_data=True,
         approx_min_span_tree=False,
         metric="manhattan")
     clusterer.fit(df)
-    soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
-    columns = soft_clusters.shape[1]
-    score_df = pandas.DataFrame(
-        soft_clusters.T,
-        index=[f"{basename}_{c}" for c in range(columns)],
-        columns=[c.replace("(", "").replace(")", "") for c in df.index]
-    )
-    score_df.index.name = "index"
-    output_dfs.append(score_df)
+    try:
+        soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
+        columns = soft_clusters.shape[1]
+        score_df = pandas.DataFrame(
+            soft_clusters.T,
+            index=[f"{basename}_{c}" for c in range(columns)],
+            columns=[c.replace("(", "").replace(")", "") for c in df.index]
+        )
+        score_df.index.name = "index"
+        output_dfs.append(score_df)
+        print(f"using file {csv_file} with {clusterer.labels_.max()} clusters")
+    except:
+        pass
 
 args = [(directory, filename) for filename in os.listdir(directory)]
 
