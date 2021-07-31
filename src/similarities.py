@@ -13,7 +13,7 @@ output_values = manager.list()
 
 def similarity(df, column, compare):
     print(f"doing similarities between {column} and {compare}")
-    similarity = jensenshannon(df[column].values, df[compare].values)
+    similarity = 1.0 - jensenshannon(df[column].values, df[compare].values)
     output = f"\n{column},{compare},{similarity}"
     if column != compare:
        output += f"\n{compare},{column},{similarity}"
