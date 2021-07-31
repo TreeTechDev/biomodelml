@@ -1,7 +1,6 @@
 import sys
 import itertools
 import multiprocessing
-from numpy import linalg
 from typing import List, Iterable, TextIO
 
 fasta = sys.argv[1]
@@ -9,22 +8,25 @@ outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()-1)
 opened_csvs = dict()
 
-def build_matrix(seq1: str, seq2: str) -> List[str]:
-    matrix = []
-    for ref_base in seq1:
-        row = []
-        for base in seq2:
+def build_matrix(seq1: str, seq2: str) -> List[int]:
+    row = []
+    for base in seq2:
+        for ref_base in seq1:
             if ref_base == base:
                 row.append(5)
             else:
                 row.append(-4)
-        matrix.append(row)
     
-    return linalg.eigvalsh(matrix)
+    return row
 
 def create_file(title: str, sequence: str):
+    size = len(sequence[:-1])
+    seq_title = ""
+    for n_base in range(size):
+        for base in sequence[:-1]:
+            seq_title += f"{base}.{n_base},"
     with open(f"{outpath}/{title[1:-1]}.csv", "a") as csv:
-        csv.write("sequence,"+",".join(sequence[:-1])+"\n")
+        csv.write(f"sequence,{seq_title[:-1]}\n")
         csv.flush()
 
 def get_file(title: str) -> TextIO:

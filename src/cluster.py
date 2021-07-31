@@ -27,19 +27,16 @@ def clusterize(path: str, filename: str) -> pandas.DataFrame:
         approx_min_span_tree=False,
         metric="manhattan")
     clusterer.fit(df)
-    try:
-        soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
-        columns = soft_clusters.shape[1]
-        score_df = pandas.DataFrame(
-            soft_clusters.T,
-            index=[f"{basename}_{c}" for c in range(columns)],
-            columns=[c.replace("(", "").replace(")", "") for c in df.index]
-        )
-        score_df.index.name = "index"
-        output_dfs.append(score_df)
-        print(f"using file {csv_file} with {clusterer.labels_.max()} clusters")
-    except:
-        pass
+    soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
+    columns = soft_clusters.shape[1]
+    score_df = pandas.DataFrame(
+        soft_clusters.T,
+        index=[f"{basename}_{c}" for c in range(columns)],
+        columns=[c.replace("(", "").replace(")", "") for c in df.index]
+    )
+    score_df.index.name = "index"
+    output_dfs.append(score_df)
+    print(f"using file {csv_file} with {clusterer.labels_.max()} clusters")
 
 args = [(directory, filename) for filename in os.listdir(directory)]
 
