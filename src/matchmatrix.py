@@ -40,7 +40,6 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     ref_title, ref_sequence = ref_fasta
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
-    print(matrix)
     str_matrix = ",".join([str(m) for m in matrix])
     opened_csvs = get_file(ref_title)
     opened_csvs.write(f"{title[1:-1]},{str_matrix}\n")
