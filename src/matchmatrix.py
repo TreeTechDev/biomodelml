@@ -1,6 +1,7 @@
 import sys
 import itertools
 import multiprocessing
+import numpy
 from typing import List, Iterable, TextIO
 
 fasta = sys.argv[1]
@@ -8,17 +9,20 @@ outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()-1)
 opened_csvs = dict()
 
+MIN=-4
+MAX=5
+N_MIN, N_MAX = ((numpy.array([-4, 5])-MIN)*10/(MAX-MIN)).tolist()
+
 def build_matrix(seq1: str, seq2: str) -> List[int]:
     row = []
     for base in seq2:
         for ref_base in seq1:
             if ref_base == base:
-                row.append(5)
+                row.append(N_MAX)
             else:
-                row.append(-4)
+                row.append(N_MIN)
     
-    #  normalize and return
-    return [(i-min(row))*10/(max(row)-min(row)) for i in row]
+    return row
 
 def create_file(title: str, sequence: str):
     size = len(sequence[:-1])
