@@ -1,27 +1,31 @@
 import sys
-import pandas
+import os
 import vaex
 import multiprocessing
 from scipy.spatial.distance import jensenshannon
 
-file_path = sys.argv[1]
+directory = sys.argv[1]
+output_path = os.path.join(directory, "similarity.csv")
 chunksize = 30_000
-processes = int(1)
-manager = multiprocessing.Manager()
-output_values = manager.list()
+processes = 1  # need more memory
 
 
 def similarity(df, column, compare):
     print(f"doing similarities between {column} and {compare}")
-    similarity = 1.0 - jensenshannon(df[column].values, df[compare].values)
+    similarity = df.mutual_information(column, compare)[0]
     output = f"\n{column},{compare},{similarity}"
     if column != compare:
        output += f"\n{compare},{column},{similarity}"
-    output_values.append(output)
+    with open(output_path, "w") as sim:
+        sim.write(output)
+        sim.flush()
+    print(f"wrote {column} and {compare} similarity {similarity} to file")
 
-df = vaex.open(file_path)
+print(f"openning all hdf5 files...")
 
-with open(f"{file_path}.similarity.csv", "w") as sim:
+df = vaex.open(os.path.join(directory, "*.csv.hdf5"))
+
+with open(output_path, "w") as sim:
     sim.write("column,compare,similarity")
 
 columns = list(df.columns)[1:]
@@ -33,7 +37,3 @@ with multiprocessing.Pool(processes) as pool:
         similarity,
         args
     )
-
-print("writing similarities to file...")
-with open(f"{file_path}.similarity.csv", "a") as sim:
-    sim.writelines(output_values)

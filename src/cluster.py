@@ -10,8 +10,6 @@ processes = int(multiprocessing.cpu_count()-1)
 output_path = sys.argv[2]
 
 def clusterize(path: str, filename: str) -> pandas.DataFrame:
-    if not filename.endswith(".csv"):
-        return
     csv_file = os.path.join(path, filename)
     basename = filename.split(".csv")[0]
     df = pandas.read_csv(csv_file).set_index("sequence")
@@ -37,7 +35,10 @@ def clusterize(path: str, filename: str) -> pandas.DataFrame:
     print(
         f"using file {csv_file} to {output_name} with {clusterer.labels_.max()} clusters")
 
-args = [(directory, filename) for filename in os.listdir(directory)]
+args = []
+for filename in os.listdir(directory):
+    if filename.endswith(".csv"):
+        args.append((directory, filename))
 
 print(f"running clusteres with {len(args)} files...")
 
