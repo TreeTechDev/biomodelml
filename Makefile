@@ -10,6 +10,8 @@ IMG_NAME="bioinfo2.0"
 
 clean:
 	rm -rf $(FULL_DATA_DIR)/*
+	mkdir -p $(FULL_DATA_DIR)/matrix
+	mkdir -p $(FULL_DATA_DIR)/cluster
 	touch $(FULL_DATA_DIR)/.keep
 	touch $(FULL_DATA_DIR)/matrix/.keep
 	touch $(FULL_DATA_DIR)/cluster/.keep
