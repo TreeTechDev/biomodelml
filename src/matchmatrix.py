@@ -9,16 +9,16 @@ outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()-1)
 opened_csvs = dict()
 
-PURINES=["G", "A"]
-PYRIMIDINES=["T", "C"]
+PURINES=("G", "A")
+PYRIMIDINES=("T", "C")
 MIN=-4
 MED=1
 MAX=5
 N_MIN, N_MED, N_MAX = ((numpy.array([MIN, MED, MAX])-MIN)*10/(MAX-MIN)).tolist()
 
 def is_same_class(ref: str, base: str) -> bool:
-    return (ref in PURINES and base in (PURINES - [ref])) or \
-        (ref in PYRIMIDINES and base in (PYRIMIDINES - [ref]))
+    return (ref in PURINES and base in PURINES) or \
+        (ref in PYRIMIDINES and base in PYRIMIDINES)
 
 def build_matrix(seq1: str, seq2: str) -> List[int]:
     row = []
