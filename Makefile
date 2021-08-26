@@ -96,7 +96,7 @@ workflow: data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/Ecoli_K12_MG1655.5UTR.m
 	-rm data/matrix/*.csv
 	-rm data/cluster/*.csv
 	-rm data/vector/*.csv
-	python src/matchmatrix.py data/Ecoli_K12_MG1655.3UTR.mRNA.seq.cdhit data/matrix
+	python src/matchmatrix.py data/Ecoli_K12_MG1655.5UTR.mRNA.seq.cdhit data/matrix
 	python src/cluster.py data/matrix/ data/cluster/
 	python src/to_vectors.py data/cluster/ data/vector/
 	python src/similarities.py data/vector/
