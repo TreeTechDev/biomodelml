@@ -2,3 +2,4 @@ data/*
 !data/.keep
 !data/matrix/.keep
 !data/cluster/.keep
+!data/vector/.keep
