@@ -43,10 +43,11 @@ for directory, filename in args:
     df = vaex.from_csv(filepath, copy_index=True)
     columns = list(df.columns)[1:]
 
-    print(f"converting {len(col_args)} columns / files to vector...")
     col_args = []
     for column in columns:
         col_args.append((output, df, column))
+
+    print(f"converting {len(col_args)} columns / files to vector for file {filename}...")
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
             convert,
