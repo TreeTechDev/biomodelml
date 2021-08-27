@@ -6,7 +6,7 @@ from scipy.spatial.distance import jensenshannon
 
 directory = sys.argv[1]
 output_path = os.path.join(directory, "similarity.csv")
-processes = 1  # need more memory
+processes = int(multiprocessing.cpu_count()-1)
 args = []
 
 def similarity(df, filename, filename_compare):

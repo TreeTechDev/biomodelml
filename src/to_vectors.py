@@ -6,7 +6,7 @@ import multiprocessing
 processes = int(multiprocessing.cpu_count()-1)
 directory = sys.argv[1]
 output = sys.argv[2]
-args, col_args, out_args = [], [], []
+args, out_args = [], []
 
 for filename in os.listdir(directory):
     if filename.endswith(".csv"):
@@ -42,13 +42,14 @@ for directory, filename in args:
     filepath = os.path.join(directory, filename)
     df = vaex.from_csv(filepath, copy_index=True)
     columns = list(df.columns)[1:]
+
+    print(f"converting {len(col_args)} columns / files to vector...")
+    col_args = []
     for column in columns:
         col_args.append((output, df, column))
+    with multiprocessing.Pool(processes) as pool:
+        pool.starmap(
+            convert,
+            col_args
+        )
 
-print(f"converting {len(col_args)} columns / files to vector...")
-
-with multiprocessing.Pool(processes) as pool:
-    pool.starmap(
-        convert,
-        col_args
-    )
