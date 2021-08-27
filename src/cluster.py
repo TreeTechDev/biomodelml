@@ -23,7 +23,7 @@ def clusterize(path: str, filename: str) -> pandas.DataFrame:
     clusterer.fit(df)
     soft_clusters = hdbscan.all_points_membership_vectors(clusterer)
     lines, columns = soft_clusters.shape
-    header = ["index"] + df.index
+    header = ["index"] + list(df.index)
     output_name = os.path.join(output_path, filename)
     
     matrix = numpy.zeros((columns,lines+1)).astype("object")
