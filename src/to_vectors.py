@@ -1,4 +1,4 @@
-import vaex
+import pandas
 import sys
 import os
 import multiprocessing
@@ -40,7 +40,7 @@ print(f"Building {len(args)} col args to vector convertion...")
 
 for directory, filename in args:
     filepath = os.path.join(directory, filename)
-    df = vaex.from_csv(filepath, copy_index=True)
+    df = pandas.read_csv(filepath)
     columns = list(df.columns)[1:]
 
     col_args = []
