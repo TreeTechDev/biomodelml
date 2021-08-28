@@ -25,7 +25,9 @@ def convert(directory, df, basename):
         print(f"file {filepath} do not exists")
         return 
     with open(filepath, "a") as f:
-        f.write("\n".join((df["index"] + "," + df[basename].astype(str)).values) + "\n")
+        f.write("\n".join(
+            (df["index"].str.replace("NC_000913.3:", "") + "," + df[basename].astype(str)).values
+            ) + "\n")
         f.flush()
 
 print(f"Creating {len(out_args)} vector files...")
