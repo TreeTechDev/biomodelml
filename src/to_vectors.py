@@ -40,8 +40,8 @@ with multiprocessing.Pool(processes) as pool:
 
 print(f"Building {len(args)} col args to vector convertion...")
 
-for directory, filename in args:
-    filepath = os.path.join(directory, filename)
+for i, path in enumerate(args):
+    filepath = os.path.join(*path)
     df = pandas.read_csv(filepath)
     columns = list(df.columns)[1:]
 
@@ -49,7 +49,7 @@ for directory, filename in args:
     for column in columns:
         col_args.append((output, df, column))
 
-    print(f"converting {len(col_args)} columns / files to vector for file {filename}...")
+    print(f"converting {len(col_args)} columns {i}/{len(args)} files to vector for file {path[1]}...")
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
             convert,
