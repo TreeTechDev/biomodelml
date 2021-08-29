@@ -13,7 +13,8 @@ def similarity(df, filename, filename_compare):
     basename = filename.split(".csv")[0]
     basename_compare = filename_compare.split("csv")[0]
     filepath = os.path.join(directory, filename_compare)
-    df_compare = pandas.read_csv(filepath, index_col=0, header=None, dtype=float).T
+    df_compare = pandas.read_csv(
+        filepath, index_col=0, header=None, dtype={"cluster": str, "prob": float}).T
     df_join = pandas.concat(
         [df, df_compare], join="inner", ignore_index=True, copy=False)
     print(f"doing similarities between {basename} and {basename_compare} with {len(df_join.columns)} features")
