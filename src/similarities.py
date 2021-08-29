@@ -16,7 +16,7 @@ def similarity(df, filename, filename_compare):
     df_compare = pandas.read_csv(filepath, index_col=0, header=None).T
     df_join = pandas.concat(
         [df, df_compare], join="inner", ignore_index=True, copy=False)
-    print(f"doing similarities between {basename} and {basename_compare}")
+    print(f"doing similarities between {basename} and {basename_compare} with {len(df_join.columns)} features")
     similarity = 1 - jensenshannon(df_join.values)
     output = f"\n{basename},{basename_compare},{similarity}"
     if basename != basename_compare:
