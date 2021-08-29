@@ -41,7 +41,7 @@ print(f"starting similarity check with {len(args)} combinations...")
 
 for i, path in enumerate(args):
     filepath = os.path.join(*path)
-    df = pandas.read_csv(filepath, index_col=0, header=None).T
+    df = pandas.read_csv(filepath, index_col=0, header=None, dtype={"cluster": str, "prob": float}).T
     compare_args = [(df, path[1], f) for d, f in args[i:]]
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
