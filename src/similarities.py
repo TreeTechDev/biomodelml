@@ -14,10 +14,10 @@ def similarity(df, filename, filename_compare):
     basename_compare = filename_compare.split("csv")[0]
     filepath = os.path.join(directory, filename_compare)
     df_compare = pandas.read_csv(
-        filepath, index_col=0, header=None).T
+        filepath, index_col=0, header=None, skiprows=1).T
     df_join = pandas.concat(
-        [df, df_compare], join="inner", ignore_index=True, copy=False).drop("cluster", axis=1)
-    print(f"doing similarities between {basename} and {basename_compare} with {len(df_join.columns)} features")
+        [df, df_compare], join="inner", ignore_index=True, copy=False).dropna(axis=1)
+    print(f"doing similarities between {basename} and {basename_compare} with {df_join.shape[1]} features")
     try:
         similarity = 1 - jensenshannon(*df_join.values)
     except Exception as e:
@@ -46,7 +46,7 @@ print(f"starting similarity check with {len(args)} combinations...")
 
 for i, path in enumerate(args):
     filepath = os.path.join(*path)
-    df = pandas.read_csv(filepath, index_col=0, header=None).T
+    df = pandas.read_csv(filepath, index_col=0, header=None, skiprows=1).T
     compare_args = [(df, path[1], f) for d, f in args[i:]]
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
