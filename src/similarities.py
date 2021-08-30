@@ -19,9 +19,10 @@ def similarity(df, filename, filename_compare):
         [df, df_compare], join="inner", ignore_index=True, copy=False).drop("cluster", axis=1)
     print(f"doing similarities between {basename} and {basename_compare} with {len(df_join.columns)} features")
     try:
-        similarity = str(1 - jensenshannon(*df_join.values))
-    except:
+        similarity = 1 - jensenshannon(*df_join.values)
+    except Exception as e:
         print(f"fail to compute similarity between {basename} and {basename_compare}")
+        print(e)
         return
     output = f"\n{basename},{basename_compare},{similarity}"
     if basename != basename_compare:
