@@ -19,7 +19,7 @@ def feature_compare(filename):
     filepath = os.path.join(directory, filename)
     df = pandas.read_csv(
         filepath, index_col=0, header=None, skiprows=1).T
-    cols = set(df.columns)
+    cols = set(df.dropna(axis=1).columns)
     Global.max_features = cols.union(Global.max_features)
     if Global.min_features:
         cols = cols.intersection(Global.min_features)
