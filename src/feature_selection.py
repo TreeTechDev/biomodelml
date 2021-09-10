@@ -1,12 +1,11 @@
 import sys
 import os
-from typing import MutableMapping
 import pandas
 import multiprocessing
 
 directory = sys.argv[1]
 output_path = os.path.join(directory, "features.txt")
-processes = int(multiprocessing.cpu_count()-1)
+processes = int(multiprocessing.cpu_count()-1)*2
 args = []
 manager = multiprocessing.Manager()
 Global = manager.Namespace()
@@ -36,7 +35,7 @@ for filename in os.listdir(directory):
 print(f"starting Feature check with {len(args)} files...")
 
 
-with multiprocessing.Pool(processes) as pool:
+with multiprocessing.dummy.Pool(processes) as pool:
     pool.starmap(
         feature_compare,
         args
