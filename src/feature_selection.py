@@ -1,11 +1,11 @@
 import sys
 import os
+import pickle
 import pandas
 import multiprocessing
-from multiprocessing.dummy import Pool
 
 directory = sys.argv[1]
-output_path = os.path.join(directory, "features.txt")
+output_path = os.path.join(directory, "features.pkl")
 processes = int(multiprocessing.cpu_count()-1)*2
 args = []
 manager = multiprocessing.Manager()
@@ -33,15 +33,17 @@ for filename in os.listdir(directory):
     if filename.endswith(".csv") and not output_path.endswith(filename):
         args.append((filename,))
 
-print(f"starting Feature check with {len(args)} files...")
+print(f"starting feature check with {len(args)} files...")
 
 
-with Pool(processes) as pool:
+with multiprocessing.Pool(processes) as pool:
     pool.starmap(
         feature_compare,
         args
     )
-with open(output_path, "w") as sim:
-    sim.write(f"{Global.max_features}\n{Global.max_features}")
+features = {"min": Global.min_features, "max": Global.max_features}
 
 print(f"process finished with {len(Global.min_features)} min features and {len(Global.max_features)} max features")
+with open(output_path, "wb") as f:
+    pickle.dump(features, f)
+
