@@ -2,6 +2,7 @@ import sys
 import os
 import pandas
 import multiprocessing
+from multiprocessing.dummy import Pool
 
 directory = sys.argv[1]
 output_path = os.path.join(directory, "features.txt")
@@ -35,7 +36,7 @@ for filename in os.listdir(directory):
 print(f"starting Feature check with {len(args)} files...")
 
 
-with multiprocessing.dummy.Pool(processes) as pool:
+with Pool(processes) as pool:
     pool.starmap(
         feature_compare,
         args
