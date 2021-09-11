@@ -43,41 +43,32 @@ def similarity(df, filename, filename_compare):
         sim.flush()
     print(f"wrote {basename} and {basename_compare} similarity {similarity} to file")
 
-async def main():
-    if os.path.exists(checkpoint):
-        print("getting files remaining from checkpoint...")
-        with open(checkpoint, "rb") as f:
-            args = pickle.load(f)
-    else:
-        print("openning all csv files...")
-        args = []
-        for filename in os.listdir(directory):
-            if filename.endswith(".csv") and not output_path.endswith(filename):
-                args.append((directory, filename))
+if os.path.exists(checkpoint):
+    print("getting files remaining from checkpoint...")
+    with open(checkpoint, "rb") as f:
+        args = pickle.load(f)
+else:
+    print("openning all csv files...")
+    args = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".csv") and not output_path.endswith(filename):
+            args.append((directory, filename))
 
-    with open(output_path, "w") as sim:
-        sim.write("gene,compare,similarity")
+with open(output_path, "w") as sim:
+    sim.write("gene,compare,similarity")
 
-    print(f"starting similarity check with {len(args)} combinations...")
+print(f"starting similarity check with {len(args)} combinations...")
 
-    # combinations_with_replacement 2 x 2
-    for i, path in enumerate(args):
-        filepath = os.path.join(*path)
-        df = pandas.read_csv(filepath, index_col=0, header=None, skiprows=1).T
-        compare_args = [(df, path[1], f) for d, f in args[i:]]
-        print(f"comparing {i+1} from {len(args)} sequences...")
-        asyncio.ensure_future(write_checkpoint(compare_args))
-        with multiprocessing.Pool(processes) as pool:
-            pool.starmap(
-                similarity,
-                compare_args
-            )
-    os.remove(checkpoint)
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
-    
-    # Let's also finish all running tasks:
-    pending = asyncio.Task.all_tasks()
-    loop.run_until_complete(asyncio.gather(*pending))
+# combinations_with_replacement 2 x 2
+for i, path in enumerate(args):
+    filepath = os.path.join(*path)
+    df = pandas.read_csv(filepath, index_col=0, header=None, skiprows=1).T
+    compare_args = [(df, path[1], f) for d, f in args[i:]]
+    print(f"comparing {i+1} from {len(args)} sequences...")
+    asyncio.get_event_loop().run_in_executor(None, write_checkpoint, compare_args)
+    with multiprocessing.Pool(processes) as pool:
+        pool.starmap(
+            similarity,
+            compare_args
+        )
+os.remove(checkpoint)
