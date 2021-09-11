@@ -14,10 +14,10 @@ with open(os.path.join(directory, "features.pkl"), "rb") as f:
 
 print(f"loaded {len(features)} features")
 
-def write_checkpoint(compare_args):
+def write_checkpoint(args):
     print("dumping checkpoint to pickle...")
     with open(checkpoint, "wb") as f:
-        pickle.dump(compare_args, f)
+        pickle.dump(args, f)
     print("checkpoint did")
 
 def similarity(df, filename, filename_compare):
@@ -64,7 +64,7 @@ for i, path in enumerate(args):
     df = pandas.read_csv(filepath, index_col=0, header=None, skiprows=1).T
     compare_args = [(df, path[1], f) for d, f in args[i:]]
     print(f"comparing {i+1} from {len(args)} sequences...")
-    p = multiprocessing.Process(target=write_checkpoint, args=(compare_args,))
+    p = multiprocessing.Process(target=write_checkpoint, args=(args[i:],))
     p.start()
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
