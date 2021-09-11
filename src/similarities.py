@@ -48,6 +48,7 @@ with open(output_path, "w") as sim:
 
 print(f"starting similarity check with {len(args)} combinations...")
 
+# combinations_with_replacement 2 x 2
 for i, path in enumerate(args):
     filepath = os.path.join(*path)
     df = pandas.read_csv(filepath, index_col=0, header=None, skiprows=1).T
