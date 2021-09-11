@@ -14,7 +14,7 @@ with open(os.path.join(directory, "features.pkl"), "rb") as f:
 
 print(f"loaded {len(features)} features")
 
-async def write_checkpoint(compare_args):
+def write_checkpoint(compare_args):
     print("dumping checkpoint to pickle...")
     with open(checkpoint, "wb") as f:
         pickle.dump(compare_args, f)
