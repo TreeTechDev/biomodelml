@@ -1,13 +1,18 @@
 import sys
 import os
 import pandas
+import pickle
 import multiprocessing
 from scipy.spatial.distance import jensenshannon
 
 directory = sys.argv[1]
-output_path = os.path.join(directory, "similarity.csv")
+output_path = os.path.join(directory, "similarity.txt")
 processes = int(multiprocessing.cpu_count()-1)
 args = []
+with open(os.path.join(directory, "features.pkl"), "rb"):
+    features = pickle.load()["max"]
+
+print(f"loaded {len(features)} features")
 
 def similarity(df, filename, filename_compare):
     basename = filename.split(".csv")[0]
@@ -16,7 +21,8 @@ def similarity(df, filename, filename_compare):
     df_compare = pandas.read_csv(
         filepath, index_col=0, header=None, skiprows=1).T
     df_join = pandas.concat(
-        [df, df_compare], join="inner", ignore_index=True, copy=False).dropna(axis=1)
+        [df, df_compare], join="outer", ignore_index=True, copy=False).reindex(
+            columns=features, fill_value=0.0, copy=False).fillna(0.0)
     try:
         similarity = 1 - jensenshannon(*df_join.values)
     except Exception as e:
