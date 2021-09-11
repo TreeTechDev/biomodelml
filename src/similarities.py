@@ -2,7 +2,6 @@ import sys
 import os
 import pandas
 import pickle
-import asyncio
 import multiprocessing
 from scipy.spatial.distance import jensenshannon
 
@@ -65,10 +64,12 @@ for i, path in enumerate(args):
     df = pandas.read_csv(filepath, index_col=0, header=None, skiprows=1).T
     compare_args = [(df, path[1], f) for d, f in args[i:]]
     print(f"comparing {i+1} from {len(args)} sequences...")
-    asyncio.get_event_loop().run_in_executor(None, write_checkpoint, compare_args)
+    p = multiprocessing.Process(target=write_checkpoint, args=(compare_args,))
+    p.start()
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
             similarity,
             compare_args
         )
+    p.join()
 os.remove(checkpoint)
