@@ -9,8 +9,8 @@ directory = sys.argv[1]
 output_path = os.path.join(directory, "similarity.txt")
 processes = int(multiprocessing.cpu_count()-1)
 args = []
-with open(os.path.join(directory, "features.pkl"), "rb"):
-    features = pickle.load()["max"]
+with open(os.path.join(directory, "features.pkl"), "rb") as f:
+    features = pickle.load(f)["max"]
 
 print(f"loaded {len(features)} features")
 
