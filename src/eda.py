@@ -14,6 +14,7 @@ for i, filename in enumerate(os.listdir(directory)):
         df = pandas.concat(
             [df, pandas.read_csv(os.path.join(directory, filename), index_col="cluster")],
         copy=False, axis=1)
+        print(f"new shape: {df.shape}")
 
 df.T.var().to_csv(output_path)
 print("Saving compressed...")
