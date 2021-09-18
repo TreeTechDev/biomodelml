@@ -13,7 +13,7 @@ for i, filename in enumerate(os.listdir(directory)):
         print(f"adding file {i+1} to list...")
         df = pandas.concat(
             [df, pandas.read_csv(os.path.join(directory, filename), index_col="cluster")],
-        copy=False, index=1)
+        copy=False, axis=1)
 
 df.T.var().to_csv(output_path)
 print("Saving compressed...")
