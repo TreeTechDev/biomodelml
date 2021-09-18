@@ -6,6 +6,8 @@ directory = sys.argv[1]
 output_path = os.path.join(directory, "variance.txt")
 output_all_path = os.path.join(directory, "gene_cluster.parquet")
 
+df = pandas.DataFrame()
+
 for i, filename in enumerate(os.listdir(directory)):
     if filename.endswith(".csv") and not output_path.endswith(filename):
         print(f"adding file {i+1} to list...")
