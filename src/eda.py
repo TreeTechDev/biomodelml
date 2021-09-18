@@ -14,7 +14,7 @@ for i, filename in enumerate(os.listdir(directory)):
         df = pandas.concat(
             [df, pandas.read_csv(os.path.join(directory, filename), index_col="cluster")],
         copy=False, axis=1)
-        df.rename(columns={"prob": filename.split(".csv")[0]}, inplace=True, copy=False)
+        df.rename(columns={"prob": filename.split(".csv")[0].replace("NC_000913.3:", "")}, inplace=True, copy=False)
         print(f"new shape: {df.shape}")
 
 df.T.var().to_csv(output_path)
