@@ -10,7 +10,7 @@ df = pandas.DataFrame()
 
 for i, filename in enumerate(os.listdir(directory)):
     if filename.endswith(".csv") and not output_path.endswith(filename):
-        print(f"adding file {i+1} to list...")
+        print(f"adding file {i+1} to df...")
         df = pandas.concat(
             [df, pandas.read_csv(os.path.join(directory, filename), index_col="cluster")],
         copy=False, axis=1)
