@@ -4,6 +4,7 @@ import os
 
 directory = sys.argv[1]
 output_path = os.path.join(directory, "variance.txt")
+output_all_path = os.path.join(directory, "gene_cluster.parquet")
 args = []
 
 for i, filename in enumerate(os.listdir(directory)):
@@ -15,4 +16,4 @@ print("concating...")
 df = pandas.concat(args, copy=False, index=1)
 df.T.var().to_csv(output_path)
 print("Saving compressed...")
-df.to_csv(output_path + ".gzip")
+df.to_parquet(output_all_path)
