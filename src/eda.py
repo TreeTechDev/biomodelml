@@ -5,7 +5,6 @@ import os
 directory = sys.argv[1]
 output_path = os.path.join(directory, "variance.txt")
 output_all_path = os.path.join(directory, "gene_cluster.parquet")
-args = []
 
 for i, filename in enumerate(os.listdir(directory)):
     if filename.endswith(".csv") and not output_path.endswith(filename):
