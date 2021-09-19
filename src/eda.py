@@ -12,8 +12,7 @@ for i, filename in enumerate(os.listdir(directory)):
     if filename.endswith(".csv") and not output_path.endswith(filename):
         print(f"adding file {i+1} to df...")
         df = pandas.concat(
-            [df, pandas.read_csv(os.path.join(directory, filename), index_col="cluster")],
-        copy=False, axis=1)
+            [df, pandas.read_csv(os.path.join(directory, filename), index_col="cluster")], axis=1)
         df.rename(columns={"prob": filename.split(".csv")[0].replace("NC_000913.3:", "")}, inplace=True, copy=False)
         print(f"new shape: {df.shape}")
 
