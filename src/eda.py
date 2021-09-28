@@ -1,4 +1,4 @@
-import pandas
+import modin.pandas as pandas
 import sys
 import os
 
@@ -16,6 +16,7 @@ for i, filename in enumerate(os.listdir(directory)):
         df.rename(columns={"prob": filename.split(".csv")[0].replace("NC_000913.3:", "")}, inplace=True, copy=False)
         print(f"new shape: {df.shape}")
 
-df.T.var().to_csv(output_path)
+df = df.T
+df.var().to_csv(output_path)
 print("Saving compressed...")
 df.to_parquet(output_all_path)

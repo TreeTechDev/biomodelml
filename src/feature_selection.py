@@ -1,7 +1,7 @@
 import sys
 import os
 import pickle
-import pandas
+import modin.pandas as pandas
 import multiprocessing
 
 directory = sys.argv[1]

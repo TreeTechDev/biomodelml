@@ -1,6 +1,6 @@
 import sys
 import os
-import pandas
+import modin.pandas as pandas
 import pickle
 import multiprocessing
 from scipy.spatial.distance import jensenshannon
