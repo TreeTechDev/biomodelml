@@ -27,7 +27,7 @@ for i, filename in enumerate(os.listdir(directory)):
             with Pool(len(to_load)) as pool:
                 dfs = list(pool.map(read_csv, to_load))
             to_load = []
-            df = pandas.concat(df + dfs, axis=1)
+            df = pandas.concat([df] + dfs, axis=1)
             print(f"new shape: {df.shape}")
 
 df = df.T.fillna(0.0)
