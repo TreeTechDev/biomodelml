@@ -1,5 +1,5 @@
 import numpy
-import pandas
+import modin.pandas as pandas
 import hdbscan
 import multiprocessing
 import os
