@@ -16,7 +16,7 @@ for i, filename in enumerate(os.listdir(directory)):
         df.rename(columns={"prob": filename.split(".csv")[0].replace("NC_000913.3:", "")}, inplace=True, copy=False)
         print(f"new shape: {df.shape}")
 
-df = df.T
+df = df.T.fillna(0.0)
 df.var().to_csv(output_path)
 print("Saving compressed...")
 df.to_parquet(output_all_path)
