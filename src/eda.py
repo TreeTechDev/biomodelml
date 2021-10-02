@@ -1,5 +1,5 @@
 import ray
-ray.init(num_cpus=4)
+ray.init(num_cpus=2)
 import modin.pandas as pandas
 import sys
 import os
