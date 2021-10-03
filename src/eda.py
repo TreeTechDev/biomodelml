@@ -1,5 +1,5 @@
 import ray
-ray.init(num_cpus=2)
+ray.init()
 import modin.pandas as pandas
 import sys
 import os
@@ -19,7 +19,7 @@ def read_csv(filename):
         inplace=True,
         copy=False
     )
-    return df
+    return df.T
 
 for i, filename in enumerate(os.listdir(directory)):
     if filename.endswith(".csv") and not output_path.endswith(filename):
@@ -29,10 +29,10 @@ for i, filename in enumerate(os.listdir(directory)):
             with Pool(len(to_load)) as pool:
                 dfs = list(pool.map(read_csv, to_load))
             to_load = []
-            df = pandas.concat([df] + dfs, axis=1)
+            df = pandas.concat([df] + dfs, axis=0)
             print(f"new shape: {df.shape}")
 
-df = df.T.fillna(0.0)
-df.var().to_csv(output_path)
+# df = df.T.fillna(0.0)
+# df.var().to_csv(output_path)
 print("Saving compressed...")
 df.to_parquet(output_all_path)
