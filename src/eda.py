@@ -3,7 +3,7 @@ ray.init()
 import modin.pandas as pandas
 import sys
 import os
-from multiprocessing import Pool
+from multiprocessing.dummy import Pool
 
 directory = sys.argv[1]
 output_path = os.path.join(directory, "variance.txt")
@@ -29,7 +29,7 @@ for i, filename in enumerate(os.listdir(directory)):
             with Pool(len(to_load)) as pool:
                 dfs = list(pool.map(read_csv, to_load))
             to_load = []
-            df = pandas.concat([df] + dfs, axis=0)
+            df = pandas.concat([df] + dfs, axis=0, copy=False)
             print(f"new shape: {df.shape}")
 
 # df = df.T.fillna(0.0)
