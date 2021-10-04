@@ -1,8 +1,5 @@
 import sys
 import os
-# import ray
-# ray.init()
-# import modin.pandas as pandas
 import pandas
 import pickle
 import multiprocessing
@@ -56,8 +53,8 @@ else:
         if filename.endswith(".csv") and not output_path.endswith(filename):
             args.append((directory, filename))
 
-with open(output_path, "w") as sim:
-    sim.write("gene,compare,similarity")
+    with open(output_path, "w") as sim:
+        sim.write("gene,compare,similarity")
 
 print(f"starting similarity check with {len(args)} combinations...")
 

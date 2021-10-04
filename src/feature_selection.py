@@ -1,9 +1,7 @@
 import sys
 import os
 import pickle
-import ray
-ray.init()
-import modin.pandas as pandas
+import pandas
 import multiprocessing
 
 directory = sys.argv[1]

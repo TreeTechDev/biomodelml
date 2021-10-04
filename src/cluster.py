@@ -1,7 +1,5 @@
 import numpy
-import ray
-ray.init()
-import modin.pandas as pandas
+import pandas
 import hdbscan
 import multiprocessing
 import os
