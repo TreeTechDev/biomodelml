@@ -8,7 +8,7 @@ from multiprocessing.dummy import Pool
 directory = sys.argv[1]
 output_path = os.path.join(directory, "variance.txt")
 output_all_path = os.path.join(directory, "gene_cluster.parquet")
-n_threads = 100
+n_threads = 50
 to_load = []
 df = pandas.DataFrame()
 
