@@ -1,5 +1,7 @@
 import sys
 import os
+import ray
+ray.init()
 import modin.pandas as pandas
 import pickle
 import multiprocessing

@@ -1,3 +1,5 @@
+import ray
+ray.init()
 import modin.pandas as pandas
 import sys
 import os

@@ -1,4 +1,6 @@
 import numpy
+import ray
+ray.init()
 import modin.pandas as pandas
 import hdbscan
 import multiprocessing
