@@ -3,7 +3,7 @@ ray.init()
 import modin.pandas as pandas
 import sys
 import os
-from multiprocessing.dummy import Pool
+from multiprocessing import Pool
 
 directory = sys.argv[1]
 output_path = os.path.join(directory, "variance.txt")
