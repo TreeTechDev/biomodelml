@@ -1,8 +1,9 @@
 import sys
 import os
-import ray
-ray.init()
-import modin.pandas as pandas
+# import ray
+# ray.init()
+# import modin.pandas as pandas
+import pandas
 import pickle
 import multiprocessing
 from scipy.spatial.distance import jensenshannon
