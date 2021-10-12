@@ -7,67 +7,45 @@ from typing import List, Iterable, TextIO
 fasta = sys.argv[1]
 outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()-1)
-opened_csvs = dict()
+manager = multiprocessing.Manager()
+Global = manager.dict()
 
-PURINES=("G", "A")
-PYRIMIDINES=("T", "C")
-MIN=-4
-MED=1
-MAX=5
-N_MIN, N_MED, N_MAX = ((numpy.array([MIN, MED, MAX])-MIN)*10/(MAX-MIN)).tolist()
+WINDOW=10
 
-def is_same_class(ref: str, base: str) -> bool:
-    return (ref in PURINES and base in PURINES) or \
-        (ref in PYRIMIDINES and base in PYRIMIDINES)
+def build_matrix(seq1: str, seq2: str):
+    """
+    Primeira sequência é a coluna e segunda é a linha.
+    Retorna a soma de todas as janelas em 2 dimensões, na normal e na reversa.
 
-def build_matrix(seq1: str, seq2: str) -> List[int]:
-    row = []
-    for base in seq2:
-        base = base.upper()
-        for ref_base in seq1:
-            ref_base = ref_base.upper()
-            if ref_base == base:
-                row.append(N_MAX)
-            elif is_same_class(ref_base, base):
-                row.append(N_MED)
-            else:
-                row.append(N_MIN)
-    
-    return row
+    :rtype: numpy array (len segunda, len primeira, 2)
+    """
+    len2 = len(seq2)
+    len1 = len(seq1)
+    seq1 = seq1.upper()
+    seq2 = seq2.upper()
+    window = WINDOW
+    rows = numpy.zeros((len2, len1, window, 2))
 
-def create_file(title: str, sequence: str):
-    size = len(sequence[:-1])
-    seq_title = ""
-    for n_base in range(size):
-        for base in sequence[:-1]:
-            seq_title += f"{base}.{n_base},"
-    with open(f"{outpath}/{title[1:-1]}.csv", "a") as csv:
-        csv.write(f"sequence,{seq_title[:-1]}\n")
-        csv.flush()
+    for w in range(window):
+        for b in range(0, len2-w):
+            for r in range(0, len1-w):
+                if seq1[r:r+w+1] == seq2[b:b+w+1]:
+                    for i in range(w+1):
+                        rows[b+i, r+i, w, 0] = 1
+                if seq1[r:r+w+1] == seq2[::-1][b:b+w+1]:
+                    for i in range(w+1):
+                        rows[len2-b-i-1, r+i, w, 1] = 1
+    return numpy.sum(rows, 2)
 
-def get_file(title: str) -> TextIO:
-    if not opened_csvs.get(title[1:-1]):
-        opened_csvs[title[1:-1]] = open(f"{outpath}/{title[1:-1]}.csv", "a")
-    
-    return opened_csvs[title[1:-1]]
 
 def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     ref_title, ref_sequence = ref_fasta
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
-    str_matrix = ",".join([str(m) for m in matrix])
-    opened_csvs = get_file(ref_title)
-    opened_csvs.write(f"{title[1:-1]},{str_matrix}\n")
-    opened_csvs.flush()
+    Global.setdefault(ref_title, {})[title] = matrix
 
 with open(fasta, "r") as sequences:
     print(f"starting to build files for {len(sequences.readlines())} sequences")
-with open(fasta, "r") as sequences:
-    with multiprocessing.Pool(processes) as pool:
-        pool.starmap(
-            create_file,
-            itertools.zip_longest(sequences, sequences)
-        )
 
 print("starting to build matrix for sequences")
 with open(fasta, "r") as sequences:
@@ -76,6 +54,3 @@ with open(fasta, "r") as sequences:
             parallel_iterate,
             itertools.product(
                 itertools.zip_longest(sequences, sequences), repeat=2))
-
-for csv in opened_csvs:
-    csv.close()
