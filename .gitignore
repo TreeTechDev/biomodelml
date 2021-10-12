@@ -3,3 +3,4 @@ data/*
 !data/matrix/.keep
 !data/cluster/.keep
 !data/vector/.keep
+.ipynb_checkpoints/
