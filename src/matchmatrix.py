@@ -54,3 +54,5 @@ with open(fasta, "r") as sequences:
             parallel_iterate,
             itertools.product(
                 itertools.zip_longest(sequences, sequences), repeat=2))
+print("writing files...")
+print("done!")
