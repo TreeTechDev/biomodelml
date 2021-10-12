@@ -2,7 +2,8 @@ import sys
 import itertools
 import multiprocessing
 import numpy
-from typing import List, Iterable, TextIO
+import pickle
+from typing import Iterable
 
 fasta = sys.argv[1]
 outpath = sys.argv[2]
@@ -55,4 +56,6 @@ with open(fasta, "r") as sequences:
             itertools.product(
                 itertools.zip_longest(sequences, sequences), repeat=2))
 print("writing files...")
+with open("matrices.pkl", "wb") as f:
+    pickle.dump(Global, f)
 print("done!")
