@@ -46,9 +46,8 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     Global.setdefault(ref_title, {})[title] = matrix
 
 with open(fasta, "r") as sequences:
-    print(f"starting to build files for {len(sequences.readlines())} sequences")
+    print(f"starting to build matrix for {len(sequences.readlines())} sequences")
 
-print("starting to build matrix for sequences")
 with open(fasta, "r") as sequences:
     with multiprocessing.Pool(processes) as pool:
         pool.starmap(
@@ -57,5 +56,5 @@ with open(fasta, "r") as sequences:
                 itertools.zip_longest(sequences, sequences), repeat=2))
 print("writing files...")
 with open("matrices.pkl", "wb") as f:
-    pickle.dump(Global, f)
+    pickle.dump(dict(Global), f)
 print("done!")
