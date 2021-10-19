@@ -1,15 +1,14 @@
 import os
 import sys
 import itertools
-import multiprocessing
 from multiprocessing.dummy import Pool
 import numpy
-import pickle
+import joblib
 from typing import Iterable
 
 fasta = sys.argv[1]
 outpath = sys.argv[2]
-processes = int(multiprocessing.cpu_count()-1)
+threads = 30
 Global = dict()
 
 WINDOW=10
@@ -52,7 +51,7 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
 
 print("Avoiding race condition creating dict structure first...")
 with open(fasta, "r") as sequences:
-    with Pool(processes) as pool:
+    with Pool(threads) as pool:
         pool.starmap(
             create_dict,
             itertools.product(
@@ -62,12 +61,11 @@ with open(fasta, "r") as sequences:
     print(f"starting to build matrix for {len(sequences.readlines())} sequences")
 
 with open(fasta, "r") as sequences:
-    with Pool(processes) as pool:
+    with Pool(threads) as pool:
         pool.starmap(
             parallel_iterate,
             itertools.product(
                 itertools.zip_longest(sequences, sequences), repeat=2))
 print("writing files...")
-with open(os.path.join(outpath, "matrices.pkl"), "wb") as f:
-    pickle.dump(Global, f)
+joblib.dump(Global, os.path.join(outpath, "matrices.job"))
 print("done!")
