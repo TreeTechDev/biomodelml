@@ -1,6 +1,8 @@
+import os
 import sys
 import itertools
 import multiprocessing
+from multiprocessing.dummy import Pool
 import numpy
 import pickle
 from typing import Iterable
@@ -8,8 +10,7 @@ from typing import Iterable
 fasta = sys.argv[1]
 outpath = sys.argv[2]
 processes = int(multiprocessing.cpu_count()-1)
-manager = multiprocessing.Manager()
-Global = manager.dict()
+Global = dict()
 
 WINDOW=10
 
@@ -43,18 +44,19 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     ref_title, ref_sequence = ref_fasta
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
-    Global.setdefault(ref_title, manager.dict())[title] = matrix
+    Global.setdefault(ref_title[1:-1], {})[title[1:-1]] = matrix
+    print(ref_title[1:-1], len(Global[ref_title[1:-1]]))
 
 with open(fasta, "r") as sequences:
     print(f"starting to build matrix for {len(sequences.readlines())} sequences")
 
 with open(fasta, "r") as sequences:
-    with multiprocessing.Pool(processes) as pool:
+    with Pool(processes) as pool:
         pool.starmap(
             parallel_iterate,
             itertools.product(
                 itertools.zip_longest(sequences, sequences), repeat=2))
 print("writing files...")
-with open("matrices.pkl", "wb") as f:
-    pickle.dump(dict(Global), f)
+with open(os.path.join(outpath, "matrices.pkl"), "wb") as f:
+    pickle.dump(Global, f)
 print("done!")
