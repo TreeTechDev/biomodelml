@@ -39,13 +39,24 @@ def build_matrix(seq1: str, seq2: str):
                         rows[len2-b-i-1, r+i, w, 1] = 1
     return numpy.sum(rows, 2)
 
+def create_dict(ref_fasta: Iterable[str], fasta: Iterable[str]):
+    ref_title, ref_sequence = ref_fasta
+    Global[ref_title[1:-1]] = {}
 
 def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     ref_title, ref_sequence = ref_fasta
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
-    Global.setdefault(ref_title[1:-1], {})[title[1:-1]] = matrix
+    Global[ref_title[1:-1]][title[1:-1]] = matrix
     print(ref_title[1:-1], len(Global[ref_title[1:-1]]))
+
+print("Avoiding race condition creating dict structure first...")
+with open(fasta, "r") as sequences:
+    with Pool(processes) as pool:
+        pool.starmap(
+            create_dict,
+            itertools.product(
+                itertools.zip_longest(sequences, sequences), repeat=2))
 
 with open(fasta, "r") as sequences:
     print(f"starting to build matrix for {len(sequences.readlines())} sequences")
