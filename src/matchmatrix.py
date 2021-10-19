@@ -43,7 +43,9 @@ def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
     ref_title, ref_sequence = ref_fasta
     title, sequence = fasta
     matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
-    Global.setdefault(ref_title, {})[title] = matrix
+    if Global.get(ref_title) == None:
+        Global[ref_title] = {}
+    Global[ref_title][title] = matrix
 
 with open(fasta, "r") as sequences:
     print(f"starting to build matrix for {len(sequences.readlines())} sequences")
