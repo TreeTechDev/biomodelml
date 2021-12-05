@@ -1,20 +1,13 @@
 import os
 import sys
-import itertools
-from multiprocessing.dummy import Pool
+from multiprocessing import Pool, cpu_count
+from matplotlib import pyplot
 import numpy
-import joblib
 from Bio.Seq import Seq
-from typing import Iterable
+from Bio import SeqIO
 
-fasta = sys.argv[1]
-outpath = sys.argv[2]
-threads = 30
-Global = dict()
 
-WINDOW=10
-
-def build_matrix(seq1: Seq, seq2: Seq, max_window: int = WINDOW, min_window: int = 1):
+def build_matrix(seq1: Seq, seq2: Seq, max_window: int, min_window: int):
     """
     Primeira sequência é a coluna e segunda é a linha.
     Retorna a soma de todas as janelas em 2 dimensões, na normal e na reversa.
@@ -41,38 +34,40 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int = WINDOW, min_window: int
 
     return rows
 
-def create_dict(ref_fasta: Iterable[str], fasta: Iterable[str]):
-    ref_title, ref_sequence = ref_fasta
-    Global[ref_title[1:-1]] = {}
 
-def parallel_iterate(ref_fasta: Iterable[str], fasta: Iterable[str]):
-    ref_title, ref_sequence = ref_fasta
-    title, sequence = fasta
-    matrix = build_matrix(ref_sequence[:-1], sequence[:-1])
-    Global[ref_title[1:-1]][title[1:-1]] = matrix
-    print(ref_title[1:-1], len(Global[ref_title[1:-1]]))
+def save_image_by_matrices(
+        name1: str, name2: str, seq1: Seq, seq2: Seq,
+        max_window: int, min_window: int, output_path: str):
+    matrix = build_matrix(seq1, seq2, max_window, min_window)
+    max_rgb = 255
+    filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
+    pyplot.imsave(
+        os.path.join(output_path, filename),
+        (matrix*max_rgb/max_window).astype(numpy.uint8)
+    )
 
-def main():
-    print("Avoiding race condition creating dict structure first...")
-    with open(fasta, "r") as sequences:
-        with Pool(threads) as pool:
+
+def main(fasta_file: str, output_path: str):
+
+    max_window = 20
+    min_window = 1
+    procs = cpu_count()
+
+    with open(fasta_file, "r") as handle:
+        sequences = SeqIO.parse(handle, "fasta")
+        print(f"starting to build image matrix for {len(sequences)} sequences")
+
+    with open(fasta_file) as handle:
+        sequences = SeqIO.parse(handle, "fasta")
+        with Pool(procs) as pool:
             pool.starmap(
-                create_dict,
-                itertools.product(
-                    itertools.zip_longest(sequences, sequences), repeat=2))
+                save_image_by_matrices,
+                [(s.description, s.description, s.seq, s.seq, max_window,
+                  min_window, output_path) for s in sequences]
+            )
 
-    with open(fasta, "r") as sequences:
-        print(f"starting to build matrix for {len(sequences.readlines())} sequences")
-
-    with open(fasta, "r") as sequences:
-        with Pool(threads) as pool:
-            pool.starmap(
-                parallel_iterate,
-                itertools.product(
-                    itertools.zip_longest(sequences, sequences), repeat=2))
-    print("writing files...")
-    joblib.dump(Global, os.path.join(outpath, "matrices.job"))
-    print("done!")
 
 if __name__ == "__main__":
-    main()
+    fasta_file = sys.argv[1]
+    outpath = sys.argv[2]
+    main(fasta_file, outpath)

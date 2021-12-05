@@ -1,0 +1,22 @@
+import sys
+from typing import Optional
+from src.experiment import Experiment
+from src.variants.control import ControlVariant
+from src.variants.deep_search.variant import DeepSearchVariant
+
+
+def main(fasta_file: str, output_path: str, image_path: Optional[str] = None):
+    Experiment(
+        output_path,
+        # ControlVariant(fasta_file),
+        DeepSearchVariant(fasta_file, image_path)
+    ).run().save()
+
+if __name__ == "__main__":
+    fasta_file = sys.argv[1]
+    output_path = sys.argv[2]
+    try:
+        image_path = sys.argv[3]
+    except IndexError:
+        image_path = None
+    main(fasta_file, output_path, image_path)
