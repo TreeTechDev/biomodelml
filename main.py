@@ -8,8 +8,8 @@ from src.variants.deep_search.variant import DeepSearchVariant
 def main(fasta_file: str, output_path: str, image_path: Optional[str] = None):
     Experiment(
         output_path,
-        # ControlVariant(fasta_file),
-        DeepSearchVariant(fasta_file, image_path)
+        DeepSearchVariant(fasta_file, image_path),
+        ControlVariant(fasta_file)
     ).run().save()
 
 if __name__ == "__main__":

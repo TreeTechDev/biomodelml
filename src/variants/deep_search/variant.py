@@ -29,8 +29,8 @@ class DeepSearchVariant(Variant):
             ], axis=1)
         df = df.sort_index(axis=1).sort_index(axis=0)
         names = [name.split("/")[-1].split(".")[0] for name in df.columns]
-        diff = set(names).difference(set(self._names))
-        if not diff:
+        diff = set(self._names).difference(set(names))
+        if diff:
             raise IOError(f"Sequences without image created: {diff}")
 
         return DistanceStruct(names=names, matrix=df.to_numpy())
