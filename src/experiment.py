@@ -43,3 +43,4 @@ class Experiment:
             )
             pyplot.savefig(
                 path.join(self._output_path, f"{tree_struct.name}.png"))
+            ax.clear()
