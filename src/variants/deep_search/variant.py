@@ -1,4 +1,5 @@
 import pandas
+import numpy
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
 from src.variants.deep_search.feature_extractor import FeatureExtractor
@@ -15,7 +16,11 @@ class DeepSearchVariant(Variant):
 
     def build_matrix(self) -> DistanceStruct:
         features = FeatureExtractor(self._input_shape)
-        indexer = Indexer(self._image_folder, features)
+        indexer = Indexer(self._image_folder, self._names, features)
+        names = [name.split("/")[-1].split(".")[0] for name in indexer.image_list]
+        diff = set(self._names).difference(set(names))
+        if diff:
+            raise IOError(f"Sequences without image created: {diff}")
         data = indexer.build()
         df = pandas.DataFrame()
         for i in range(len(self._names)):
@@ -28,9 +33,5 @@ class DeepSearchVariant(Variant):
                 ).set_index("gene")
             ], axis=1)
         df = df.sort_index(axis=1).sort_index(axis=0)
-        names = [name.split("/")[-1].split(".")[0] for name in df.columns]
-        diff = set(self._names).difference(set(names))
-        if diff:
-            raise IOError(f"Sequences without image created: {diff}")
 
-        return DistanceStruct(names=names, matrix=df.to_numpy())
+        return DistanceStruct(names=names, matrix=df.to_numpy(numpy.float64))

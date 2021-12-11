@@ -1,7 +1,8 @@
 import os
 import pandas
 import numpy
-from PIL import Image
+import cv2
+from typing import Tuple
 from sewar.full_ref import uqi
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool
@@ -18,24 +19,57 @@ class UQIVariant(Variant):
         self._image_folder = image_folder
     
     def _read_image(self, img_name: str) -> numpy.ndarray:
-        with Image.open(
-                os.path.join(
-                    self._image_folder, img_name)
-        ) as img:
-            return numpy.asarray(img)        
+        return cv2.imread(
+            os.path.join(
+                self._image_folder, img_name))       
+
+    def _upscale_images(self, image: numpy.ndarray, other: numpy.ndarray) -> Tuple[numpy.ndarray]:
+        max_x = image.shape[0] if image.shape[0] > other.shape[0] else other.shape[0]
+        max_y = image.shape[1] if image.shape[1] > other.shape[1] else other.shape[1]
+        result = (
+            cv2.resize(image, dsize=(max_x, max_y), interpolation=cv2.INTER_CUBIC),
+            cv2.resize(other, dsize=(max_x, max_y), interpolation=cv2.INTER_CUBIC)
+        )
+        return result
+
+    def _upscale_with_border(self, image: numpy.ndarray, other: numpy.ndarray) -> Tuple[numpy.ndarray]:
+        if image.shape[0] < other.shape[0]:
+            min_image = image
+            max_image = other
+        elif image.shape[0] > other.shape[0]:
+            min_image = other
+            max_image = image
+        else:
+            return (image, other)
+        diff_shape = max_image.shape[0] - min_image.shape[0]
+        if diff_shape % 2 > 0:
+            diff_shape += 1
+            max_image = cv2.resize(
+                max_image,
+                dsize=(max_image.shape[0]+1, max_image.shape[1]+1),
+                interpolation=cv2.INTER_CUBIC)
+        new_image = numpy.zeros(max_image.shape)
+        pad = diff_shape // 2
+        new_image[pad:-pad, pad:-pad] = min_image
+        return (max_image, new_image)
 
     def _calc_uqi(self, img_name1: str, img_name2: str) -> float:
         return 1.0 - abs(uqi(
-            self._read_image(img_name1), self._read_image(img_name2)))
+            *self._upscale_with_border(
+                self._read_image(img_name1), self._read_image(img_name2))))
 
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
-        indexes = [img.split('.')[0] for img in files]
-        threads = cpu_count() - 3
-        diff = set(self._names).difference(set(indexes))
+        indexes = {img.split('.')[0]: img.split('.')[1:] for img in files}
+        threads = 2
+        diff = set(self._names).difference(set(indexes.keys()))
         if diff:
             raise IOError(f"Sequences without image created: {diff}")
-
+        files = []
+        for i in self._names:
+            if indexes.get(i):
+                files.append(f"{i}.{'.'.join(indexes.get(i))}")
+        indexes = self._names
         df = pandas.DataFrame(index=indexes, columns=indexes)
         last_ids = list()
         for idx, img1 in enumerate(files):
@@ -51,5 +85,5 @@ class UQIVariant(Variant):
             else:
                 df.loc[idx1, :] = result
             last_ids.append(idx1)
-
-        return DistanceStruct(names=indexes, matrix=df.to_numpy())
+        return DistanceStruct(
+            names=indexes, matrix=df.to_numpy(numpy.float64))

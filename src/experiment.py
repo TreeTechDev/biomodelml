@@ -1,5 +1,6 @@
 from __future__ import annotations
 from os import path
+import traceback
 from typing import Iterable
 from src.variants.variant import Variant
 from src.structs import TreeStruct
@@ -18,10 +19,13 @@ class Experiment:
     def run(self) -> Experiment:
         self._trees = []
         for variant in self._variants:
-            distances = variant.build_matrix()
-            tree = phylo.neighbor_joining(distances.matrix)
-            self._trees.append(
-                TreeStruct(name=variant.name, names=distances.names, tree=tree))
+            try:
+                distances = variant.build_matrix()
+                tree = phylo.neighbor_joining(distances.matrix)
+                self._trees.append(
+                    TreeStruct(name=variant.name, names=distances.names, tree=tree))
+            except Exception:
+                print(traceback.format_exc())
         return self
     
     def save(self):

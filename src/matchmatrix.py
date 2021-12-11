@@ -51,11 +51,11 @@ def main(fasta_file: str, output_path: str):
 
     max_window = 20
     min_window = 1
-    procs = cpu_count()
+    procs = cpu_count() - 1
 
     with open(fasta_file, "r") as handle:
         sequences = SeqIO.parse(handle, "fasta")
-        print(f"starting to build image matrix for {len(sequences)} sequences")
+        print(f"starting to build image matrix for {len(list(sequences))} sequences")
 
     with open(fasta_file) as handle:
         sequences = SeqIO.parse(handle, "fasta")
@@ -70,4 +70,6 @@ def main(fasta_file: str, output_path: str):
 if __name__ == "__main__":
     fasta_file = sys.argv[1]
     outpath = sys.argv[2]
+    outpath = os.path.join(outpath, fasta_file.split(".")[0].split("/")[-1])
+    os.makedirs(outpath, exist_ok=True)
     main(fasta_file, outpath)

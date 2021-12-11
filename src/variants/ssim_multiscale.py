@@ -1,6 +1,9 @@
 import os
 import pandas
+import numpy
 import tensorflow
+from tensorflow import Tensor
+from typing import Tuple
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
 
@@ -14,30 +17,46 @@ class SSIMMultiScaleVariant(Variant):
         super().__init__(fasta_file)
         self._image_folder = image_folder
     
-    def _read_image(self, img_name: str) -> tensorflow.Tensor:
+    def _read_image(self, img_name: str) -> Tensor:
         return tensorflow.expand_dims(
             tensorflow.image.decode_image(
                 tensorflow.io.read_file(
                     os.path.join(
                         self._image_folder, img_name))), axis=0)
 
+    def _upscale_images(self, image: Tensor, other: Tensor) -> Tuple[Tensor]:
+        max_x = image.shape[1] if image.shape[1] > other.shape[1] else other.shape[1]
+        max_y = image.shape[2] if image.shape[2] > other.shape[2] else other.shape[2]
+        return (
+            tensorflow.image.resize(image, (max_x, max_y), tensorflow.image.ResizeMethod.BICUBIC),
+            tensorflow.image.resize(other, (max_x, max_y), tensorflow.image.ResizeMethod.BICUBIC)
+        )
+
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
-        indexes = [img.split('.')[0] for img in files]
-        diff = set(self._names).difference(set(indexes))
+        indexes = {img.split('.')[0]: img.split('.')[1:] for img in files}
+        diff = set(self._names).difference(set(indexes.keys()))
         if diff:
             raise IOError(f"Sequences without image created: {diff}")
-
+        files = []
+        for i in self._names:
+            if indexes.get(i):
+                files.append(f"{i}.{'.'.join(indexes.get(i))}")
+        indexes = self._names
         df = pandas.DataFrame(index=indexes, columns=indexes)
         last_ids = list()
         for idx, img1 in enumerate(files):
             idx1 = img1.split('.')[0]
             results = list()
-            for img2 in files[idx, :]:
+            for img2 in files[idx:]:
+                img, other = self._upscale_images(
+                    self._read_image(img1),
+                    self._read_image(img2)
+                )
                 results.append(
                     tensorflow.image.ssim_multiscale(
-                        self._read_image(img1),
-                        self._read_image(img2),
+                        img,
+                        other,
                         max_val=255, filter_size=11,
                         filter_sigma=1.5, k1=0.01, k2=0.03)[0].numpy()
                 )
@@ -48,4 +67,4 @@ class SSIMMultiScaleVariant(Variant):
                 df.loc[idx1, :] = results
             last_ids.append(idx1)
 
-        return DistanceStruct(names=indexes, matrix=1-df.to_numpy())
+        return DistanceStruct(names=indexes, matrix=1.0-df.to_numpy(numpy.float64))

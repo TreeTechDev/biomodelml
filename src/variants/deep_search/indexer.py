@@ -9,11 +9,11 @@ from annoy import AnnoyIndex
 class Indexer:
     distance_type = "euclidean"
 
-    def __init__(self, image_folder: str, feature_extractor: FeatureExtractor):
+    def __init__(self, image_folder: str, seq_names: str, feature_extractor: FeatureExtractor):
         self.image_list = []
         self._index = None
         for path in os.listdir(image_folder):
-            if path.split(".")[-1] in ("png", "jpg", "jpeg"):
+            if path.split(".")[-1] in ("png", "jpg", "jpeg") and path.split(".")[0] in seq_names:
                 self.image_list.append(os.path.join(image_folder, path))
         self._feature_extractor = feature_extractor
 
