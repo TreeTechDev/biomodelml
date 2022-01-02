@@ -13,8 +13,8 @@ class SSIMMultiScaleVariant(Variant):
 
     name = "MultiScale Structural Similarity Index Measure"
 
-    def __init__(self, fasta_file, image_folder: str):
-        super().__init__(fasta_file)
+    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
+        super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
     
     def _read_image(self, img_name: str) -> Tensor:
@@ -34,19 +34,19 @@ class SSIMMultiScaleVariant(Variant):
 
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
-        indexes = {img.split('.')[0]: img.split('.')[1:] for img in files}
+        indexes = {".".join(img.split('.')[:-1]): img.split('.')[-1] for img in files}
         diff = set(self._names).difference(set(indexes.keys()))
         if diff:
             raise IOError(f"Sequences without image created: {diff}")
         files = []
         for i in self._names:
             if indexes.get(i):
-                files.append(f"{i}.{'.'.join(indexes.get(i))}")
+                files.append(f"{i}.{indexes.get(i)}")
         indexes = self._names
         df = pandas.DataFrame(index=indexes, columns=indexes)
         last_ids = list()
         for idx, img1 in enumerate(files):
-            idx1 = img1.split('.')[0]
+            idx1 = indexes[idx]
             results = list()
             for img2 in files[idx:]:
                 img, other = self._upscale_images(

@@ -13,7 +13,7 @@ class Indexer:
         self.image_list = []
         self._index = None
         for path in os.listdir(image_folder):
-            if path.split(".")[-1] in ("png", "jpg", "jpeg") and path.split(".")[0] in seq_names:
+            if path.split(".")[-1] in ("png", "jpg", "jpeg") and ".".join(path.split(".")[:-1]) in seq_names:
                 self.image_list.append(os.path.join(image_folder, path))
         self._feature_extractor = feature_extractor
 

@@ -9,15 +9,15 @@ class DeepSearchVariant(Variant):
 
     name = "Deep Search with Annoy"
 
-    def __init__(self, fasta_file: str, image_folder: str):
-        super().__init__(fasta_file)
+    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
+        super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
         self._input_shape = (2000, 2000, 3)
 
     def build_matrix(self) -> DistanceStruct:
         features = FeatureExtractor(self._input_shape)
         indexer = Indexer(self._image_folder, self._names, features)
-        names = [name.split("/")[-1].split(".")[0] for name in indexer.image_list]
+        names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in indexer.image_list]
         diff = set(self._names).difference(set(names))
         if diff:
             raise IOError(f"Sequences without image created: {diff}")

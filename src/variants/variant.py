@@ -4,8 +4,12 @@ from src.structs import DistanceStruct
 
 class Variant:
     name = "variant"
-    
-    def __init__(self, fasta_file: str):
+    protein_type = "P"
+    nucleotide_type = "N"
+    def __init__(self, fasta_file: str, sequence_type):
+        if sequence_type not in [self.protein_type, self.nucleotide_type]:
+            raise IOError(
+                f"Sequence must be a protein or nucleotide and is: {sequence_type}")
         seqs = SeqIO.parse(fasta_file, "fasta")
         self._names = []
         self._sequences = []

@@ -2,7 +2,6 @@ import numpy
 import cv2
 from typing import Tuple, List
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
-from tensorflow.keras.preprocessing import image
 
 
 class FeatureExtractor:
