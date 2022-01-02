@@ -10,4 +10,4 @@ RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
     conda config --add channels defaults &&\
     conda config --add channels bioconda &&\
     conda install -c bioconda clustalo &&\
-    pip install requirements.txt
+    pip install -r requirements.txt
