@@ -1,10 +1,11 @@
-.PHONY: clean build workflow reports
+.PHONY: clean build sanitize matches tree run
 
 .SECONDARY:
 
-DATA_DIR="/data"
-TRIMM_DIR=$(DATA_DIR)/trimmomatic/adapters
-FULL_DATA_DIR=`pwd`$(DATA_DIR)
+APP_DIR="/app"
+DATA_DIR=$(APP_DIR)/data
+FULL_ROOT_DIR=`pwd`
+FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 
 IMG_NAME="bioinfo2.0"
 
@@ -22,7 +23,16 @@ build:
 	docker build . -t $(IMG_NAME)
 
 run-docker:
-	docker run -it -v $(FULL_DATA_DIR):$(DATA_DIR) $(IMG_NAME) $(CMD)
+	docker run -it -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
-run:
-	CMD="muscle -in $(DATA_DIR)/Ecoli_K12_MG1655.5UTR.mRNA.seq.cdhit -html -out $(DATA_DIR)/align.html" $(MAKE) run-docker
+# example: SEQ=MIDORI_LONGEST_NUC_GB246_A6_RAW TYPE=N make sanitize
+sanitize:
+	CMD="python sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
+
+matches:
+	CMD="python matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
+
+tree:
+	CMD="python tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/ $(TYPE) $(DATA_DIR)/images/$(SEQ)/" $(MAKE) run-docker
+
+run: | sanitize matches tree
