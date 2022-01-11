@@ -9,7 +9,7 @@ class SSIMMultiScaleVariant(SSIMVariant):
 
     name = "MultiScale Structural Similarity Index Measure"
 
-    def _call_alg(image: Tensor, other: Tensor) -> numpy.ndarray:
+    def _call_alg(self, image: Tensor, other: Tensor) -> numpy.ndarray:
         return tensorflow.image.ssim_multiscale(
                                 image,
                                 other,

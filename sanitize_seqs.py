@@ -19,7 +19,6 @@ def main(seq_path: str, seq_type):
         for s in sequences:
             alphabet = set(s.seq)
             if alphabet.issubset(seq_types[seq_type]):
-                s.description = s.description.split(" ")[-1] + " " + s.id
                 sanitized_seqs.append(s)
 
     print(f"writing {len(sanitized_seqs)} sequences")

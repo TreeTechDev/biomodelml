@@ -11,11 +11,9 @@ IMG_NAME="bioinfo2.0"
 
 clean:
 	rm -rf $(FULL_DATA_DIR)/*
-	mkdir -p $(FULL_DATA_DIR)/matrix
 	mkdir -p $(FULL_DATA_DIR)/images
 	mkdir -p $(FULL_DATA_DIR)/trees
 	touch $(FULL_DATA_DIR)/.keep
-	touch $(FULL_DATA_DIR)/matrix/.keep
 	touch $(FULL_DATA_DIR)/images/.keep
 	touch $(FULL_DATA_DIR)/trees/.keep
 

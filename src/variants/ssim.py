@@ -17,7 +17,7 @@ class SSIMVariant(Variant):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
     
-    def _call_alg(image: Tensor, other: Tensor) -> numpy.ndarray:
+    def _call_alg(self, image: Tensor, other: Tensor) -> numpy.ndarray:
         return tensorflow.image.ssim(
                                 image,
                                 other,

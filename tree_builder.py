@@ -2,10 +2,10 @@ import os
 import sys
 from typing import Optional
 from src.experiment import Experiment
-from src.variants.control import ControlVariant
+# from src.variants.control import ControlVariant
 # from src.variants.uqi import UQIVariant
 from src.variants.ssim import SSIMVariant
-from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+# from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 # from src.variants.deep_search.variant import DeepSearchVariant
 
 
@@ -13,7 +13,7 @@ def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Opti
     Experiment(
         output_path,
         # ControlVariant(fasta_file, sequence_type),
-        SSIMVariant(fasta_file, sequence_type),
+        SSIMVariant(fasta_file, sequence_type, image_path),
         # SSIMMultiScaleVariant(fasta_file, sequence_type, image_path)
         # UQIVariant(fasta_file, sequence_type, image_path),
         # DeepSearchVariant(fasta_file, sequence_type, image_path)
