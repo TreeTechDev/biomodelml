@@ -10,4 +10,5 @@ RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
     conda config --add channels defaults &&\
     conda config --add channels bioconda &&\
     conda install -c bioconda clustalo &&\
-    pip install -r requirements.txt
+    pip install -r requirements.txt &&\
+    apt-get update && apt-get install libgl1-mesa-glx -y
