@@ -86,6 +86,5 @@ class UQIVariant(Variant):
             else:
                 df.loc[idx1, :] = result
             last_ids.append(idx1)
-            print(f"did {len(last_ids)}")
         return DistanceStruct(
             names=indexes, matrix=df.to_numpy(numpy.float64))

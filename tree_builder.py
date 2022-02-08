@@ -19,7 +19,7 @@ def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Opti
         NeedlemanWunschVariant(fasta_file, sequence_type),
         SSIMVariant(fasta_file, sequence_type, image_path),
         SSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
-        # UQIVariant(fasta_file, sequence_type, image_path)
+        UQIVariant(fasta_file, sequence_type, image_path)
         # DeepSearchVariant(fasta_file, sequence_type, image_path)
     ).run().save()
 
