@@ -23,6 +23,12 @@ build:
 run-docker:
 	docker run -it -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
+evol:
+	CMD="ete3 evol -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw' --alg '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.fasta' --models M2 M1 b_free b_neut --leaves --tests b_free,b_neut --cpu 4" $(MAKE) run-docker
+
+compare:
+	CMD="ete3 compare -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw' -r '$(DATA_DIR)/trees/orthologs_cytoglobin/MultiScale Structural Similarity Index Measure.nw' --unrooted" $(MAKE) run-docker
+
 # example: SEQ=MIDORI_LONGEST_NUC_GB246_A6_RAW TYPE=N make sanitize
 sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker

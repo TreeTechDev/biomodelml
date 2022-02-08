@@ -13,6 +13,8 @@ class Variant:
         seqs = SeqIO.parse(fasta_file, "fasta")
         self._names = []
         self._sequences = []
+        self._fasta_file = fasta_file
+        self._sequence_type = sequence_type
         for s in seqs:
             self._names.append(s.description)
             self._sequences.append(s.seq)

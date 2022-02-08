@@ -19,7 +19,9 @@ class ControlVariant(Variant):
 
     def build_matrix(self) -> DistanceStruct:
         alignment = clustalo.ClustalOmegaApp.align(self._sequences)
+
         distances = 1 - align.get_pairwise_sequence_identity(
             alignment, mode="shortest"
         )
-        return DistanceStruct(names=self._names, matrix=distances)
+        return DistanceStruct(
+            names=self._names, matrix=distances, align=alignment)

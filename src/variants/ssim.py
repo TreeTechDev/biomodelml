@@ -2,6 +2,7 @@ import os
 import pandas
 import numpy
 import tensorflow
+import cv2
 from tensorflow import Tensor
 from typing import Tuple
 from src.variants.variant import Variant
@@ -29,7 +30,7 @@ class SSIMVariant(Variant):
             tensorflow.image.decode_image(
                 tensorflow.io.read_file(
                     os.path.join(
-                        self._image_folder, img_name))), axis=0)
+                        self._image_folder, img_name)), channels=3), axis=0)
 
     def _upscale_images(self, image: Tensor, other: Tensor) -> Tuple[Tensor]:
         max_x = image.shape[1] if image.shape[1] > other.shape[1] else other.shape[1]
@@ -38,6 +39,24 @@ class SSIMVariant(Variant):
             tensorflow.image.resize(image, (max_x, max_y), tensorflow.image.ResizeMethod.BICUBIC),
             tensorflow.image.resize(other, (max_x, max_y), tensorflow.image.ResizeMethod.BICUBIC)
         )
+
+    # def _match_images(self, image: Tensor, other: Tensor) -> Tuple[Tensor]:
+    #     if image.shape[1] > other.shape[1]:
+    #         max_img = image.numpy().squeeze(0)
+    #         min_img = other.numpy().squeeze(0)
+    #     else:
+    #         min_img = image.numpy().squeeze(0)
+    #         max_img = other.numpy().squeeze(0)
+        
+    #     w, h, _ = min_img.shape
+        
+    #     res = cv2.matchTemplate(max_img, min_img, cv2.TM_CCOEFF_NORMED)
+    #     _, _, _, max_loc = cv2.minMaxLoc(res)
+    #     max_cropped = max_img[max_loc[1]:max_loc[1]+w, max_loc[0]:max_loc[0]+h, :]
+    #     return (
+    #         tensorflow.expand_dims(min_img, axis=0),
+    #         tensorflow.expand_dims(max_cropped, axis=0)
+    #     )
 
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
