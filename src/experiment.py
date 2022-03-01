@@ -56,13 +56,12 @@ class Experiment:
         fig.suptitle(tree_struct.name, fontsize=16)
         ax = fig.gca()
         ax.axis("off")
-        newick = tree_struct.tree.to_newick(include_distance=True)
-        t = Phylo.read(
-            StringIO(newick), "newick", values_are_confidence=True)
+        newick = tree_struct.tree.to_newick(include_distance=False)
+        t = Phylo.read(StringIO(newick), "newick")
         t.ladderize()
         Phylo.draw(
             t,
-            show_confidence=True,
+            show_confidence=False,
             axes=ax,
             do_show=False,
             label_func=lambda clade: "" if not clade.name else tree_struct.distances.names[int(

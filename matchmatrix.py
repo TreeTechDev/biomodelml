@@ -35,16 +35,53 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int, min_window: int):
     return rows
 
 
+def _produce_results_images(
+    matrix: numpy.ndarray, output_path: str,
+    filename: str, max_window: int, min_window: int
+):
+    new_name = f"{max_window}_{min_window}_{filename}"
+    matrix = numpy.invert(matrix)
+
+    pyplot.imsave(
+        os.path.join(output_path, f"red_{new_name}"),
+        matrix[:, :, 0], cmap=pyplot.cm.gray
+    )
+    pyplot.imsave(
+        os.path.join(output_path, f"green_{new_name}"),
+        matrix[:, :, 1], cmap=pyplot.cm.gray
+    )
+    pyplot.imsave(
+        os.path.join(output_path, f"blue_{new_name}"),
+        matrix[:, :, 2], cmap=pyplot.cm.gray
+    )
+    # matrix = numpy.invert(matrix)
+
+    # black_pixels = numpy.where(
+    #     (matrix[:, :, 0] < 25) & 
+    #     (matrix[:, :, 1] < 25) & 
+    #     (matrix[:, :, 2] < 25)
+    # )
+    # matrix[black_pixels] = [255, 255, 255]
+
+    # pyplot.imsave(
+    #     os.path.join(output_path, f"white_{new_name}"),
+    #     matrix
+    # )
+
+
 def save_image_by_matrices(
         name1: str, name2: str, seq1: Seq, seq2: Seq,
         max_window: int, min_window: int, output_path: str):
     matrix = build_matrix(seq1, seq2, max_window, min_window)
     max_rgb = 255
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
+    color_matrix = (matrix*max_rgb/max_window).astype(numpy.uint8)
     pyplot.imsave(
         os.path.join(output_path, filename),
-        (matrix*max_rgb/max_window).astype(numpy.uint8)
+        color_matrix
     )
+    _produce_results_images(
+        color_matrix, output_path, filename, max_window, min_window)
 
 
 def main(fasta_file: str, output_path: str):
@@ -64,10 +101,10 @@ def main(fasta_file: str, output_path: str):
             if not os.path.exists(os.path.join(output_path, f"{s.description}.png")):
                 to_run.append(
                     (s.description, s.description, s.seq, s.seq, max_window,
-                  min_window, output_path)
+                     min_window, output_path)
                 )
         print(f"starting to build image matrix for {len(to_run)} sequences")
-            
+
         with Pool(procs) as pool:
             pool.starmap(
                 save_image_by_matrices,
