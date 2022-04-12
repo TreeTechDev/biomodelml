@@ -15,7 +15,10 @@ clean:
 	mkdir -p $(FULL_DATA_DIR)/trees
 	touch $(FULL_DATA_DIR)/.keep
 	touch $(FULL_DATA_DIR)/images/.keep
-	touch $(FULL_DATA_DIR)/trees/.keep
+	touch $(FULL_DATA_DIR)/trees/full/.keep
+	touch $(FULL_DATA_DIR)/trees/red/.keep
+	touch $(FULL_DATA_DIR)/trees/green/.keep
+	touch $(FULL_DATA_DIR)/trees/blue/.keep
 
 build:
 	docker build . -t $(IMG_NAME)
@@ -43,6 +46,9 @@ matches:
 	CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
 
 tree:
-	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/ $(TYPE) $(DATA_DIR)/images/$(SEQ)/" $(MAKE) run-docker
+	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/full $(TYPE) $(DATA_DIR)/images/full/$(SEQ)/" $(MAKE) run-docker
+	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/red $(TYPE) $(DATA_DIR)/images/red/$(SEQ)/" $(MAKE) run-docker
+	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/green $(TYPE) $(DATA_DIR)/images/green/$(SEQ)/" $(MAKE) run-docker
+	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/blue $(TYPE) $(DATA_DIR)/images/blue/$(SEQ)/" $(MAKE) run-docker
 
 run: | sanitize matches tree
