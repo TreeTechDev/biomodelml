@@ -14,9 +14,9 @@ from src.variants.deep_search.variant import DeepSearchVariant
 def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Optional[str] = None):
     Experiment(
         output_path,
-        # ControlVariant(fasta_file, sequence_type),
-        # SmithWatermanVariant(fasta_file, sequence_type),
-        # NeedlemanWunschVariant(fasta_file, sequence_type),
+        ControlVariant(fasta_file, sequence_type),
+        SmithWatermanVariant(fasta_file, sequence_type),
+        NeedlemanWunschVariant(fasta_file, sequence_type),
         # SSIMVariant(fasta_file, sequence_type, image_path),
         SSIMMultiScaleVariant(fasta_file, sequence_type, image_path)
         # UQIVariant(fasta_file, sequence_type, image_path),
