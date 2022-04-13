@@ -81,7 +81,7 @@ def _produce_by_channel(
     }
     new_matrix = matrix.copy()
     os.makedirs(os.path.join(output_path, channel_name), exist_ok=True)
-    for channel in channels_not[channel_name]:
+    for channel in channels_not.get(channel_name, []):
         new_matrix[:, :, channel] = 0
     pyplot.imsave(
         os.path.join(output_path, channel_name, filename),
@@ -92,6 +92,7 @@ def _produce_channel_images(**kwargs):
     _produce_by_channel("red", **kwargs)
     _produce_by_channel("green", **kwargs)
     _produce_by_channel("blue", **kwargs)
+    _produce_by_channel("full", **kwargs)
 
 
 def save_image_by_matrices(
@@ -101,10 +102,6 @@ def save_image_by_matrices(
     max_rgb = 255
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
     color_matrix = (matrix*max_rgb/max_window).astype(numpy.uint8)
-    pyplot.imsave(
-        os.path.join(output_path, "full", filename),
-        color_matrix
-    )
     _produce_channel_images(color_matrix, output_path, filename)
     _produce_results_images(
         color_matrix, output_path, filename, max_window, min_window)
