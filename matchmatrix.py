@@ -102,7 +102,8 @@ def save_image_by_matrices(
     max_rgb = 255
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
     color_matrix = (matrix*max_rgb/max_window).astype(numpy.uint8)
-    _produce_channel_images(color_matrix, output_path, filename)
+    _produce_channel_images(
+        matrix=color_matrix, output_path=output_path, filename=filename)
     _produce_results_images(
         color_matrix, output_path, filename, max_window, min_window)
 
