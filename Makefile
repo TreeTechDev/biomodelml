@@ -1,4 +1,4 @@
-.PHONY: clean build sanitize matches tree run experiments
+.PHONY: clean build push sanitize matches tree run experiments
 
 .SECONDARY:
 
@@ -20,6 +20,9 @@ clean:
 
 build:
 	docker build . -t $(IMG_NAME)
+
+push:
+	docker push $(IMG_NAME)
 
 run-docker:
 	docker run -it -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
