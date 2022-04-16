@@ -77,7 +77,10 @@ def _produce_by_channel(
     channels_not = {
         "red": (1, 2),
         "green": (0, 2),
-        "blue": (0, 1)
+        "blue": (0, 1),
+        "red_blue": (1,),
+        "red_green": (2,),
+        "green_blue": (0,)
     }
     new_matrix = matrix.copy()
     os.makedirs(os.path.join(output_path, channel_name), exist_ok=True)
@@ -92,6 +95,9 @@ def _produce_channel_images(**kwargs):
     _produce_by_channel("red", **kwargs)
     _produce_by_channel("green", **kwargs)
     _produce_by_channel("blue", **kwargs)
+    _produce_by_channel("red_blue", **kwargs)
+    _produce_by_channel("red_green", **kwargs)
+    _produce_by_channel("green_blue", **kwargs)
     _produce_by_channel("full", **kwargs)
 
 

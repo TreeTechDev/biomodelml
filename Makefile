@@ -45,10 +45,16 @@ sanitize:
 matches:
 	CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
 
+tree-by-channel:
+	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/$(CHANNEL) $(TYPE) $(DATA_DIR)/images/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
+
 tree:
-	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/full $(TYPE) $(DATA_DIR)/images/$(SEQ)/full/" $(MAKE) run-docker
-	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/red $(TYPE) $(DATA_DIR)/images/$(SEQ)/red/" $(MAKE) run-docker
-	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/green $(TYPE) $(DATA_DIR)/images/$(SEQ)/green/" $(MAKE) run-docker
-	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/blue $(TYPE) $(DATA_DIR)/images/$(SEQ)/blue/" $(MAKE) run-docker
+	CHANNEL="red" $(MAKE) tree-by-channel
+	CHANNEL="green" $(MAKE) tree-by-channel
+	CHANNEL="blue" $(MAKE) tree-by-channel
+	CHANNEL="full" $(MAKE) tree-by-channel
+	CHANNEL="red_green" $(MAKE) tree-by-channel
+	CHANNEL="red_blue" $(MAKE) tree-by-channel
+	CHANNEL="green_blue" $(MAKE) tree-by-channel
 
 run: | sanitize matches tree
