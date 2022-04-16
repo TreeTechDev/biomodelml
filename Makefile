@@ -7,7 +7,7 @@ DATA_DIR=$(APP_DIR)/data
 FULL_ROOT_DIR=`pwd`
 FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 
-IMG_NAME="bioinfo2.0"
+IMG_NAME="dmvieira/bioinfo2.0"
 
 clean:
 	mkdir -p $(FULL_DATA_DIR)/images
