@@ -1,4 +1,4 @@
-.PHONY: clean build sanitize matches tree run
+.PHONY: clean build sanitize matches tree run experiments
 
 .SECONDARY:
 
@@ -10,15 +10,13 @@ FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 IMG_NAME="bioinfo2.0"
 
 clean:
-	rm -rf $(FULL_DATA_DIR)/*
 	mkdir -p $(FULL_DATA_DIR)/images
 	mkdir -p $(FULL_DATA_DIR)/trees
+	rm -rf $(FULL_DATA_DIR)/images/*
+	rm -rf $(FULL_DATA_DIR)/trees/*
 	touch $(FULL_DATA_DIR)/.keep
 	touch $(FULL_DATA_DIR)/images/.keep
-	touch $(FULL_DATA_DIR)/trees/full/.keep
-	touch $(FULL_DATA_DIR)/trees/red/.keep
-	touch $(FULL_DATA_DIR)/trees/green/.keep
-	touch $(FULL_DATA_DIR)/trees/blue/.keep
+	touch $(FULL_DATA_DIR)/trees/.keep
 
 build:
 	docker build . -t $(IMG_NAME)
@@ -58,3 +56,11 @@ tree:
 	CHANNEL="green_blue" $(MAKE) tree-by-channel
 
 run: | sanitize matches tree
+
+experiments:
+	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
+	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) run
+	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) run
+	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) run
+	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
+	SEQ="indelible" TYPE="N" $(MAKE) run
