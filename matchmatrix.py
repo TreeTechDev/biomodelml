@@ -42,16 +42,17 @@ def _produce_results_images(
     new_name = f"{max_window}_{min_window}_{filename}"
     matrix = numpy.invert(matrix)
 
+    os.makedirs(os.path.join(output_path, "result"), exist_ok=True)
     pyplot.imsave(
-        os.path.join(output_path, f"red_{new_name}"),
+        os.path.join(output_path, "result", f"red_{new_name}"),
         matrix[:, :, 0], cmap=pyplot.cm.gray
     )
     pyplot.imsave(
-        os.path.join(output_path, f"green_{new_name}"),
+        os.path.join(output_path, "result", f"green_{new_name}"),
         matrix[:, :, 1], cmap=pyplot.cm.gray
     )
     pyplot.imsave(
-        os.path.join(output_path, f"blue_{new_name}"),
+        os.path.join(output_path, "result", f"blue_{new_name}"),
         matrix[:, :, 2], cmap=pyplot.cm.gray
     )
     # matrix = numpy.invert(matrix)
