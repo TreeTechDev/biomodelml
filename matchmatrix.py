@@ -68,6 +68,43 @@ def _produce_results_images(
     #     matrix
     # )
 
+def _produce_grayscale_groups(
+    matrix: numpy.ndarray,
+    output_path: str,
+    filename: str):
+
+    groups = {
+        "gray_max": numpy.max,
+        "gray_mean": numpy.mean
+    }
+
+    for name, group in groups.items():
+        os.makedirs(os.path.join(output_path, name), exist_ok=True)
+        pyplot.imsave(
+            os.path.join(output_path, name, filename),
+            group(matrix, axis=2), cmap=pyplot.cm.gray
+        )
+
+def _produce_grayscale_by_channel(
+    channel_name: str,
+    matrix: numpy.ndarray,
+    output_path: str,
+    filename: str):
+
+    channels = {
+        "gray_r": 0,
+        "gray_g": 1,
+        "gray_b": 2
+    }
+
+
+    os.makedirs(os.path.join(output_path, channel_name), exist_ok=True)
+    pyplot.imsave(
+        os.path.join(output_path, channel_name, filename),
+        matrix[:, :, channels[channel_name]], cmap=pyplot.cm.gray
+    )
+
+
 def _produce_by_channel(
     channel_name: str,
     matrix: numpy.ndarray,
@@ -99,7 +136,10 @@ def _produce_channel_images(**kwargs):
     _produce_by_channel("red_green", **kwargs)
     _produce_by_channel("green_blue", **kwargs)
     _produce_by_channel("full", **kwargs)
-
+    _produce_grayscale_by_channel("gray_r", **kwargs)
+    _produce_grayscale_by_channel("gray_g", **kwargs)
+    _produce_grayscale_by_channel("gray_b", **kwargs)
+    _produce_grayscale_groups(**kwargs)
 
 def save_image_by_matrices(
         name1: str, name2: str, seq1: Seq, seq2: Seq,

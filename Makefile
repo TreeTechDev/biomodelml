@@ -57,6 +57,11 @@ tree:
 	CHANNEL="red_green" $(MAKE) tree-by-channel
 	CHANNEL="red_blue" $(MAKE) tree-by-channel
 	CHANNEL="green_blue" $(MAKE) tree-by-channel
+	CHANNEL="gray_r" $(MAKE) tree-by-channel
+	CHANNEL="gray_g" $(MAKE) tree-by-channel
+	CHANNEL="gray_b" $(MAKE) tree-by-channel
+	CHANNEL="gray_max" $(MAKE) tree-by-channel
+	CHANNEL="gray_mean" $(MAKE) tree-by-channel
 
 run: | sanitize matches tree
 
