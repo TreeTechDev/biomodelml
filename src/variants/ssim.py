@@ -26,11 +26,14 @@ class SSIMVariant(Variant):
                                 filter_sigma=1.5, k1=0.01, k2=0.03)[0].numpy()
 
     def _read_image(self, img_name: str) -> Tensor:
-        return tensorflow.expand_dims(
+        img = tensorflow.expand_dims(
             tensorflow.image.decode_image(
                 tensorflow.io.read_file(
                     os.path.join(
                         self._image_folder, img_name)), channels=3), axis=0)
+        if tensorflow.math.equal(img[:,:,:,2], img[:,:,:,1], img[:,:,:,0]).numpy().all():
+            img = tensorflow.image.rgb_to_grayscale(img)
+        return img
 
     def _upscale_images(self, image: Tensor, other: Tensor) -> Tuple[Tensor]:
         max_x = image.shape[1] if image.shape[1] > other.shape[1] else other.shape[1]
