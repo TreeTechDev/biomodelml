@@ -21,6 +21,9 @@ clean:
 build:
 	docker build . -t $(IMG_NAME)
 
+pull:
+	docker pull $(IMG_NAME)
+
 push:
 	docker push $(IMG_NAME)
 
@@ -63,7 +66,7 @@ tree:
 	CHANNEL="gray_max" $(MAKE) tree-by-channel
 	CHANNEL="gray_mean" $(MAKE) tree-by-channel
 
-run: | sanitize matches tree
+run: | pull sanitize matches tree
 
 experiments:
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
