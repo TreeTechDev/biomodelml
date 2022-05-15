@@ -1,4 +1,4 @@
-.PHONY: clean build push sanitize matches tree run experiments
+.PHONY: clean build pull push sanitize matches tree run experiments
 
 .SECONDARY:
 
