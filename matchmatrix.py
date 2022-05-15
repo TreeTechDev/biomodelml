@@ -5,7 +5,7 @@ from matplotlib import pyplot
 import numpy
 from Bio.Seq import Seq
 from Bio import SeqIO
-
+from fastDamerauLevenshtein import damerauLevenshtein
 
 def build_matrix(seq1: Seq, seq2: Seq, max_window: int, min_window: int):
     """
@@ -18,19 +18,22 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int, min_window: int):
     len1 = len(seq1)
     seq1 = str(seq1.upper())
     seq2_reverse = str(seq2.upper().reverse_complement())
-    seq2_invert = str(seq2.upper())[::-1]
     seq2 = str(seq2.upper())
     rows = numpy.zeros((len2, len1, 3))
 
     for w in range(min_window, max_window+1):
         for b in range(0, len2-w+1):
             for r in range(0, len1-w+1):
+                #  red
                 if seq1[r:r+w] == seq2[b:b+w]:
                     numpy.fill_diagonal(rows[b:b+w, r:r+w, 0], w)
+                #  green
                 if seq1[r:r+w] == seq2_reverse[b:b+w]:
                     numpy.fill_diagonal(rows[:, ::-1][b:b+w, r:r+w, 1], w)
-                if seq1[r:r+w] == seq2_invert[b:b+w]:
-                    numpy.fill_diagonal(rows[:, ::-1][b:b+w, r:r+w, 2], w)
+                #  blue
+                edit_similarity = 1 - damerauLevenshtein(seq1[r:r+w], seq2[b:b+w], True)
+                diag_edit_similarity = rows[b:b+w, r:r+w, 2].diagonal() + edit_similarity
+                numpy.fill_diagonal(rows[b:b+w, r:r+w, 2], diag_edit_similarity)
 
     return rows
 
@@ -147,6 +150,8 @@ def save_image_by_matrices(
         max_window: int, min_window: int, output_path: str):
     matrix = build_matrix(seq1, seq2, max_window, min_window)
     max_rgb = 255
+    max_blue = matrix[:,:,2].max().max()
+    matrix[:,:,2] = matrix[:,:,2]*max_window/max_blue
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
     color_matrix = (matrix*max_rgb/max_window).astype(numpy.uint8)
     _produce_channel_images(
@@ -169,7 +174,7 @@ def main(fasta_file: str, output_path: str):
         sequences = SeqIO.parse(handle, "fasta")
         to_run = []
         for s in sequences:
-            if not os.path.exists(os.path.join(output_path, f"{s.description}.png")):
+            if not os.path.exists(os.path.join(output_path, "full", f"{s.description}.png")):
                 to_run.append(
                     (s.description, s.description, s.seq, s.seq, max_window,
                      min_window, output_path)
