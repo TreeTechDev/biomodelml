@@ -1,4 +1,4 @@
-.PHONY: clean build pull push sanitize matches tree run experiments
+.PHONY: test clean build pull push sanitize matches tree run experiments
 
 .SECONDARY:
 
@@ -8,6 +8,9 @@ FULL_ROOT_DIR=`pwd`
 FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 
 IMG_NAME="dmvieira/bioinfo2.0"
+
+test:
+	pytest
 
 clean:
 	mkdir -p $(FULL_DATA_DIR)/images
@@ -47,7 +50,7 @@ sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
 
 matches:
-	CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
+	@CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
 
 tree-by-channel:
 	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/$(CHANNEL) $(TYPE) $(DATA_DIR)/images/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
