@@ -56,10 +56,10 @@ tree-by-channel:
 	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/$(CHANNEL) $(TYPE) $(DATA_DIR)/images/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
 
 tree:
+	CHANNEL="full" $(MAKE) tree-by-channel
 	CHANNEL="red" $(MAKE) tree-by-channel
 	CHANNEL="green" $(MAKE) tree-by-channel
 	CHANNEL="blue" $(MAKE) tree-by-channel
-	CHANNEL="full" $(MAKE) tree-by-channel
 	CHANNEL="red_green" $(MAKE) tree-by-channel
 	CHANNEL="red_blue" $(MAKE) tree-by-channel
 	CHANNEL="green_blue" $(MAKE) tree-by-channel

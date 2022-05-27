@@ -4,33 +4,27 @@ from Bio.Seq import Seq
 from numpy.testing import assert_equal
 
 
-class TestBuildPalindromeMatrix(TestCase):
-    def setUp(self):
-        self.sequence = Seq("ACCTAGGT")
+def test_should_detect_palindrome():
+    sequence = Seq("ACCTAGGT")
+    matrix = build_matrix(sequence, sequence, 20)
+    assert_equal(matrix[:,:, 0], matrix[:,:, 1])
 
-    def test_should_detect_palindrome(self):
-        matrix = build_matrix(self.sequence, self.sequence, 20)
-        assert_equal(matrix[:,:, 0], matrix[:,:, 1])
+    
+def test_should_detect_direct_repeat():
+    sequence = Seq("TTACGTTACG")
+    matrix = build_matrix(sequence, sequence, 20)
+    assert_equal(matrix[:,:, 0], matrix[:,:, 0].T)
+    assert (matrix[:,:, 0] == matrix[:,:, 0].T).all() == True
+    assert (matrix[:,:, 1] == matrix[:,:, 1].T).all() == False
 
-class TestBuildDirectRepeatMatrix(TestCase):
-    def setUp(self):
-        self.sequence = Seq("TTACGTTACG")
+        
+def test_should_detect_repeat():
+    sequence = Seq("TTACGGCATT")
+    matrix = build_matrix(sequence, sequence, 20)
+    assert_equal(matrix[:,:, 0], matrix[:,:, 0].T)
+    assert_equal(matrix[:,:, 1], matrix[:,:, 1].T)
+    assert_equal(matrix[:,:, 2], matrix[:,:, 2].T)
 
-    def test_should_detect_direct_repeat(self):
-        matrix = build_matrix(self.sequence, self.sequence, 20)
-        assert_equal(matrix[:,:, 0], matrix[:,:, 0].T)
-        self.assertTrue((matrix[:,:, 0] == matrix[:,:, 0].T).all())
-        self.assertFalse((matrix[:,:, 1] == matrix[:,:, 1].T).all())
-
-class TestBuildRepeatMatrix(TestCase):
-    def setUp(self):
-        self.sequence = Seq("TTACGGCATT")
-
-    def test_should_detect_repeat(self):
-        matrix = build_matrix(self.sequence, self.sequence, 20)
-        assert_equal(matrix[:,:, 0], matrix[:,:, 0].T)
-        assert_equal(matrix[:,:, 1], matrix[:,:, 1].T)
-        assert_equal(matrix[:,:, 2], matrix[:,:, 2].T)
 
 class TestBuildMatrix(TestCase):
     def setUp(self):

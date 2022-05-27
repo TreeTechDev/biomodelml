@@ -1,9 +1,7 @@
 import os
-from sys import maxsize
 import numpy
 from matplotlib import pyplot
 from Bio.Seq import Seq
-from fastDamerauLevenshtein import damerauLevenshtein
 
 
 def _weight_seqs(seq1: Seq, seq2: Seq, len1: int, len2: int, rows: numpy.ndarray):
