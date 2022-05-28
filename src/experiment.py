@@ -1,7 +1,9 @@
 from __future__ import annotations
 from os import path
+import pathlib
 import traceback
 import pandas
+from pathlib import Path
 from typing import Iterable
 from src.variants.variant import Variant
 from src.structs import TreeStruct
@@ -12,7 +14,7 @@ from io import StringIO
 from matplotlib.figure import Figure
 
 class Experiment:
-    def __init__(self, output_path: str, *variants: Iterable[Variant]):
+    def __init__(self, output_path: Path, *variants: Iterable[Variant]):
         self._output_path = output_path
         self._variants = variants
         self._trees = []
@@ -34,7 +36,7 @@ class Experiment:
             data=tree_struct.distances.matrix,
             index=tree_struct.distances.names,
             columns=tree_struct.distances.names).to_csv(
-                path.join(self._output_path, f"{tree_struct.name}.csv")
+                self._output_path / f"{tree_struct.name}.csv"
             )
 
     def _save_align(self, tree_struct: TreeStruct):
@@ -43,13 +45,13 @@ class Experiment:
             for i, seq in enumerate(tree_struct.distances.align.get_gapped_sequences()):
                 align += f">{tree_struct.distances.names[i]}\n"
                 align += f"{seq}\n"
-            with open(path.join(self._output_path, f"{tree_struct.name}.fasta"), "w") as f:
+            with open(self._output_path / f"{tree_struct.name}.fasta", "w") as f:
                 f.write(align)
 
     def _save_newick_tree(self, tree_struct: TreeStruct):
         newick = tree_struct.tree.to_newick(
             labels=tree_struct.distances.names, include_distance=False)
-        with open(path.join(self._output_path, f"{tree_struct.name}.nw"), "w") as f:
+        with open(self._output_path / f"{tree_struct.name}.nw", "w") as f:
             f.write(newick)
 
     def _save_plot_tree(self, fig: Figure, tree_struct: TreeStruct):
@@ -69,8 +71,7 @@ class Experiment:
             branch_labels=lambda clade: "" if not clade.name else "{:.2f}".format(
                 clade.confidence) if clade.confidence else ""
         )
-        pyplot.savefig(
-            path.join(self._output_path, f"{tree_struct.name}.png"))
+        pyplot.savefig(self._output_path / f"{tree_struct.name}.png")
         ax.clear()
 
     def save(self):

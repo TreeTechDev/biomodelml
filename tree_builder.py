@@ -1,6 +1,7 @@
 import os
 import sys
 from typing import Optional
+from pathlib import Path
 from src.experiment import Experiment
 from src.variants.control import ControlVariant
 from src.variants.sw import SmithWatermanVariant
@@ -13,7 +14,7 @@ from src.variants.deep_search.variant import DeepSearchVariant
 
 def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Optional[str] = None):
     Experiment(
-        output_path,
+        Path(output_path),
         ControlVariant(fasta_file, sequence_type),
         SmithWatermanVariant(fasta_file, sequence_type),
         NeedlemanWunschVariant(fasta_file, sequence_type),

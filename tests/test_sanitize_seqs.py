@@ -1,7 +1,11 @@
-from Bio.Seq import Seq
-from numpy.testing import assert_equal
+import pytest
 from src.sanitize import remove_unrelated_sequences
 
+
+def test_should_raise_error_when_wrong_field(tmp_path):
+    fasta_file = tmp_path / "fasta.fasta"
+    with pytest.raises(IOError) as err:
+        remove_unrelated_sequences(str(fasta_file), "D")
 
 def test_should_pass_dna_sequences(tmp_path):
     fasta_file = tmp_path / "fasta.fasta"
