@@ -4,11 +4,13 @@ from matplotlib import pyplot
 from Bio.Seq import Seq
 
 
-def _weight_seqs(seq1: Seq, seq2: Seq, len1: int, len2: int, rows: numpy.ndarray):
-    for line in range(0, len2):
-        for col in range(0, len1):
-            if seq1[col] == seq2[line]:
-                rows[line, col] = 1
+def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray):
+    indexes = dict()
+    for line, letter in enumerate(seq2):
+        if letter not in indexes:
+            indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
+        idx = indexes[letter]
+        rows[line, idx] = 1
     all_lines, all_columns = numpy.where(rows[:, :] == 1)
     lines, columns = all_lines.copy(), all_columns.copy()
     line = lines[0]
@@ -61,13 +63,13 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     normalizer = numpy.zeros((len2, len1))
 
     #  red
-    rows[:, :, 0] = _weight_seqs(seq1, seq2, len1, len2, rows[:, :, 0])
+    rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0])
     norm[:, :, 0] = rows[:, :, 0].max()
     #  green
-    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, len1, len2, rows[:, :, 1])
+    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1])
     norm[:, :, 1] = rows[:, :, 1].max()
     #  blue
-    rows[:, :, 2] = _weight_seqs(seq1, seq2, len1, len2, rows[:, :, 2])
+    rows[:, :, 2] = _weight_seqs(seq1, seq2, rows[:, :, 2])
     
     all_lines, all_columns = numpy.where(rows[:, :, 2] == 0)
     for i in range(all_lines.size):
