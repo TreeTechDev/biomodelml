@@ -11,7 +11,7 @@ def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray):
             indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
         rows[line, idx] = 1
-    all_lines, all_columns = numpy.where(rows[:, :] == 1)
+    all_lines, all_columns = numpy.where(rows == 1)
     lines, columns = all_lines.copy(), all_columns.copy()
     line = lines[0]
     col = columns[0]
@@ -64,10 +64,10 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
 
     #  red
     rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0])
-    norm[:, :, 0] = rows[:, :, 0].max()
+    norm[:, :, 0] = max(rows[:, :, 0].max(), 1)
     #  green
     rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1])
-    norm[:, :, 1] = rows[:, :, 1].max()
+    norm[:, :, 1] = max(rows[:, :, 1].max(), 1)
     #  blue
     rows[:, :, 2] = _weight_seqs(seq1, seq2, rows[:, :, 2])
     
@@ -89,7 +89,7 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
         if not args or (args.get(0) or args.get(1)) and (args.get(2) or args.get(3)): continue
         normalizer[line, col] = max(list(args.values()))
     rows[:, :, 2] = normalizer
-    norm[:, :, 2] = rows[:, :, 2].max()
+    norm[:, :, 2] = max(rows[:, :, 2].max(), 1)
 
     #  norm
     rows = rows * max_window / norm

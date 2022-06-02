@@ -26,6 +26,68 @@ def test_should_detect_repeat():
     assert_equal(matrix[:,:, 2], matrix[:,:, 2].T)
 
 
+class TestBuildSimpleMatrix(TestCase):
+    def setUp(self):
+        self.sequence = Seq("ACAT")
+
+    def test_should_build_red_layer(self):
+        layer = [
+            [
+                20, 0, 15, 0
+            ],
+            [
+                0, 20, 0, 0
+            ],
+            [
+                15, 0, 20, 0
+            ],
+            [
+                0, 0, 0, 20
+            ]
+        ]
+        matrix = build_matrix(self.sequence, self.sequence, 20)
+        assert_equal(matrix[:,:, 0], layer)
+
+    def test_should_build_green_layer(self):
+        layer = [
+            [
+                10, 0, 20, 0
+            ],
+            [
+                0, 0, 0, 20
+            ], 
+            [
+                0, 0, 0, 0
+            ],
+            [
+                0, 0, 0, 10
+            ]
+        ]
+
+        matrix = build_matrix(self.sequence, self.sequence, 20)
+        assert_equal(matrix[:,:, 1], layer)
+
+    def test_should_build_blue_layer(self):
+        layer = [
+
+            [
+                0, 0, 0, 0
+            ], 
+            [
+                0, 0, 0, 0
+            ], 
+            [
+                0, 0, 0, 0
+            ], 
+            [
+                0, 0, 0, 0
+            ]
+        ]
+
+        matrix = build_matrix(self.sequence, self.sequence, 20)
+        assert_equal(matrix[:,:, 2], layer) 
+
+
 class TestBuildMatrix(TestCase):
     def setUp(self):
         self.sequence = Seq("CCCTTTACGTTTTCCCTGCA")
