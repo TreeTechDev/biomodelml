@@ -72,9 +72,9 @@ tree:
 run: | pull sanitize matches tree
 
 experiments:
-	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
+	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) run
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) run
+	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
 	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
 	SEQ="indelible" TYPE="N" $(MAKE) run
