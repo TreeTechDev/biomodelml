@@ -10,7 +10,7 @@ def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray):
         if letter not in indexes:
             indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
-        rows[line, idx] = 255
+        rows[line, idx] = 1
     all_lines, all_columns = numpy.where(rows == 1)
     lines, columns = all_lines.copy(), all_columns.copy()
     line = lines[0]
