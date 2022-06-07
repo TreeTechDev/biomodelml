@@ -10,7 +10,7 @@ def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray):
         if letter not in indexes:
             indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
-        rows[line, idx] = 1
+        rows[line, idx] = 255
     all_lines, all_columns = numpy.where(rows == 1)
     lines, columns = all_lines.copy(), all_columns.copy()
     line = lines[0]
@@ -64,12 +64,12 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
 
     #  red
     rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0])
-    norm[:, :, 0] = max(rows[:, :, 0].max(), 1)
+    norm[:, :, 0] = max(rows[:, :, 0].max(), numpy.e)
     #  green
     rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1])
-    norm[:, :, 1] = max(rows[:, :, 1].max(), 1)
+    norm[:, :, 1] = max(rows[:, :, 1].max(), numpy.e)
     #  blue
-    rows[:, :, 2] = _weight_seqs(seq1, seq2, rows[:, :, 2])
+    rows[:, :, 2] = rows[:, :, 0].copy()
     
     all_lines, all_columns = numpy.where(rows[:, :, 2] == 0)
     for i in range(all_lines.size):
@@ -89,10 +89,9 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
         if not args or (args.get(0) or args.get(1)) and (args.get(2) or args.get(3)): continue
         normalizer[line, col] = max(list(args.values()))
     rows[:, :, 2] = normalizer
-    norm[:, :, 2] = max(rows[:, :, 2].max(), 1)
-
+    norm[:, :, 2] = max(rows[:, :, 2].max(), numpy.e)
     #  norm
-    rows = rows * max_window / norm
+    rows = numpy.ma.log(rows).filled(0) * max_window / numpy.ma.log(norm).filled(1)
 
     return rows
 
@@ -184,10 +183,10 @@ def _produce_channel_images(**kwargs):
     _produce_by_channel("red", **kwargs)
     _produce_by_channel("green", **kwargs)
     _produce_by_channel("blue", **kwargs)
+    _produce_by_channel("full", **kwargs)
     _produce_by_channel("red_blue", **kwargs)
     _produce_by_channel("red_green", **kwargs)
     _produce_by_channel("green_blue", **kwargs)
-    _produce_by_channel("full", **kwargs)
     _produce_grayscale_by_channel("gray_r", **kwargs)
     _produce_grayscale_by_channel("gray_g", **kwargs)
     _produce_grayscale_by_channel("gray_b", **kwargs)
