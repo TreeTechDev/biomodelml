@@ -10,39 +10,39 @@ def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray):
         if letter not in indexes:
             indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
-        rows[line, idx] = 1
-    all_lines, all_columns = numpy.where(rows == 1)
-    lines, columns = all_lines.copy(), all_columns.copy()
-    line = lines[0]
-    col = columns[0]
-    total_r = 1
-    while(lines.size):
-        if numpy.where(all_columns[numpy.where(all_lines == line + total_r)[0]] == col + total_r)[0].size == 1:
-            total_r += 1
-            for k in range(total_r):
-                rows[line+k, col+k] = max(rows[line+k, col+k], total_r)
-        else:
-            line = lines[0]
-            lines = lines[1:]
-            col = columns[0]
-            columns = columns[1:]
-            total_r = 1
-    lines, columns = all_lines.copy(), all_columns.copy()
-    line = lines[0]
-    col = columns[0]
-    total_l = 1
-    while(lines.size):
-        if numpy.where(all_columns[numpy.where(all_lines == line + total_l)[0]] == col - total_l)[0].size == 1:
-            total_l += 1
-            for k in range(total_l):
-                rows[line+k, col-k] = max(rows[line+k, col-k], total_l)
+        rows[line, idx] = 255
+    # all_lines, all_columns = numpy.where(rows == 1)
+    # lines, columns = all_lines.copy(), all_columns.copy()
+    # line = lines[0]
+    # col = columns[0]
+    # total_r = 1
+    # while(lines.size):
+    #     if numpy.where(all_columns[numpy.where(all_lines == line + total_r)[0]] == col + total_r)[0].size == 1:
+    #         total_r += 1
+    #         for k in range(total_r):
+    #             rows[line+k, col+k] = max(rows[line+k, col+k], total_r)
+    #     else:
+    #         line = lines[0]
+    #         lines = lines[1:]
+    #         col = columns[0]
+    #         columns = columns[1:]
+    #         total_r = 1
+    # lines, columns = all_lines.copy(), all_columns.copy()
+    # line = lines[0]
+    # col = columns[0]
+    # total_l = 1
+    # while(lines.size):
+    #     if numpy.where(all_columns[numpy.where(all_lines == line + total_l)[0]] == col - total_l)[0].size == 1:
+    #         total_l += 1
+    #         for k in range(total_l):
+    #             rows[line+k, col-k] = max(rows[line+k, col-k], total_l)
 
-        else:
-            line = lines[0]
-            lines = lines[1:]
-            col = columns[0]
-            columns = columns[1:]
-            total_l = 1
+    #     else:
+    #         line = lines[0]
+    #         lines = lines[1:]
+    #         col = columns[0]
+    #         columns = columns[1:]
+    #         total_l = 1
     return rows
 
 
@@ -91,7 +91,7 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     rows[:, :, 2] = normalizer
     norm[:, :, 2] = max(rows[:, :, 2].max(), numpy.e)
     #  norm
-    rows = numpy.ma.log(rows).filled(0) * max_window / numpy.ma.log(norm).filled(1)
+    # rows = numpy.ma.log(rows).filled(0) * max_window / numpy.ma.log(norm).filled(1)
 
     return rows
 
