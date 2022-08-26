@@ -59,19 +59,17 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     seq2_reverse = str(seq2.reverse_complement())
     seq2 = str(seq2)
     rows = numpy.zeros((len2, len1, 3))
-    norm = numpy.ones((1, 1, 3))
-    normalizer = numpy.zeros((len2, len1))
+    norm = numpy.zeros((1, 1, 3))
 
     #  red
     rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0])
-    norm[:, :, 0] = max(rows[:, :, 0].max(), numpy.e)
+    # norm[:, :, 0] = max(rows[:, :, 0].max(), numpy.e)
     #  green
     rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1])
-    norm[:, :, 1] = max(rows[:, :, 1].max(), numpy.e)
-    #  blue
-    rows[:, :, 2] = rows[:, :, 0].copy()
-    
-    all_lines, all_columns = numpy.where(rows[:, :, 2] == 0)
+    # norm[:, :, 1] = max(rows[:, :, 1].max(), numpy.e)
+    #  blue    
+    normalizer = numpy.zeros((len2, len1))
+    all_lines, all_columns = numpy.where(rows[:, :, 0] == 0)
     for i in range(all_lines.size):
         line = all_lines[i]
         col = all_columns[i]
@@ -87,12 +85,12 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
                 args[j] = val                
 
         if not args or (args.get(0) or args.get(1)) and (args.get(2) or args.get(3)): continue
-        normalizer[line, col] = max(list(args.values()))
+        normalizer[line, col] = 255 #max(list(args.values()))
     rows[:, :, 2] = normalizer
-    norm[:, :, 2] = max(rows[:, :, 2].max(), numpy.e)
+    # norm[:, :, 2] = max(rows[:, :, 2].max(), numpy.e)
     #  norm
     # rows = numpy.ma.log(rows).filled(0) * max_window / numpy.ma.log(norm).filled(1)
-
+    # rows = rows * max_window / norm
     return rows
 
 

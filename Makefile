@@ -1,4 +1,4 @@
-.PHONY: test clean build pull push sanitize matches tree run experiments
+.PHONY: clean build test pull push sanitize matches tree run experiments try
 
 .SECONDARY:
 
@@ -8,9 +8,6 @@ FULL_ROOT_DIR=`pwd`
 FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 
 IMG_NAME="dmvieira/bioinfo2.0"
-
-test:
-	pytest
 
 clean:
 	mkdir -p $(FULL_DATA_DIR)/images
@@ -23,6 +20,9 @@ clean:
 
 build:
 	docker build . -t $(IMG_NAME)
+
+test:
+	CMD="pytest $(APP_DIR)" $(MAKE) run-docker
 
 pull:
 	docker pull $(IMG_NAME)
@@ -69,7 +69,10 @@ tree:
 	CHANNEL="gray_max" $(MAKE) tree-by-channel
 	CHANNEL="gray_mean" $(MAKE) tree-by-channel
 
-run: | pull sanitize matches tree
+validate:
+	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
+
+run: | pull sanitize matches tree validate
 
 experiments:
 	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
@@ -78,3 +81,7 @@ experiments:
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
 	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) run
 	SEQ="indelible" TYPE="N" $(MAKE) run
+
+try:
+	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
+	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel validate
