@@ -8,20 +8,23 @@ from src.variants.variant import Variant
 from src.structs import DistanceStruct
 
 
+MAX_POSSIBLE_SCORE = 1.0
 
 class SSIMVariant(Variant):
 
     name = "Structural Similarity Index Measure"
 
+    filter_size = 11
+
     def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
     
-    def _call_alg(self, image: Tensor, other: Tensor) -> numpy.ndarray:
+    def _call_alg(self, image: Tensor, other: Tensor) -> float:
         return tensorflow.image.ssim(
                                 image,
                                 other,
-                                max_val=255, filter_size=11,
+                                max_val=255, filter_size=self.filter_size,
                                 filter_sigma=1.5, k1=0.01, k2=0.03)[0].numpy()
 
     def _read_image(self, img_name: str) -> Tensor:
@@ -42,13 +45,53 @@ class SSIMVariant(Variant):
             tensorflow.image.resize(other, (max_x, max_y), tensorflow.image.ResizeMethod.BICUBIC)
         )
 
-    def _match_images(self, image: Tensor, other: Tensor) -> Tuple[Tensor]:
-        if image.shape[1] > other.shape[1]:
-            max_img = image.numpy()
-            min_img = other.numpy()
+    def _find_image_match(
+        self,
+        small_img: numpy.ndarray,
+        big_img: numpy.ndarray,
+        c11: int, c12: int,
+        l21: int, l22: int,
+        c21: int, c22: int,
+        max_score: int, max_pos: int, last_line: int
+    ):
+        if c12 > big_img.shape[1] or c22 > big_img.shape[1] or l22 > big_img.shape[1]:
+            return max_score, max_pos, last_line
+        
+        score = self._call_alg(small_img[:, c11:c12], big_img[l21:l22, c21:c22])
+        if score == MAX_POSSIBLE_SCORE:
+            return score, c21, l21
+        elif score > max_score:
+            return self._find_image_match(
+                small_img, big_img, c11, c12, l21+1, l22+1, c21+1, c22+1, score, c21, l21)
         else:
-            min_img = image.numpy()
-            max_img = other.numpy()
+            return self._find_image_match(
+                small_img, big_img, c11, c12, l21+1, l22+1, c21+1, c22+1, max_score, max_pos, last_line)
+
+    def _match_images(self, image: Tensor, other: Tensor) -> float:
+        if image.shape[1] > other.shape[1]:
+            max_img = image.numpy()[0]
+            min_img = other.numpy()[0]
+        else:
+            min_img = image.numpy()[0]
+            max_img = other.numpy()[0]
+        positions = dict()
+        mask_size = min_img.shape[1]
+        max_score = 0
+        max_pos = 0
+        last_line = 0
+        filter_size = self.filter_size
+
+        for j in range(0, mask_size, filter_size):
+            step = min(mask_size, j+filter_size)
+            last_score, last_pos, last_line = self._find_image_match(
+                min_img, max_img,
+                j, step,
+                last_line, mask_size+last_line,
+                last_line+j, last_line+step,
+                max_score, max_pos, last_line
+            )
+            positions[last_pos] = last_score
+        return numpy.mean(list(positions.values()))
         
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
@@ -67,12 +110,10 @@ class SSIMVariant(Variant):
             idx1 = indexes[idx]
             results = list()
             for img2 in files[idx:]:
-                img, other = self._upscale_images(
-                    self._read_image(img1),
-                    self._read_image(img2)
-                )
+                img = self._read_image(img1)
+                other = self._read_image(img2)
                 results.append(
-                    self._call_alg(img, other)
+                    self._match_images(img, other)
                 )
             if last_ids:
                 df.loc[idx1, indexes[idx:]] = results
