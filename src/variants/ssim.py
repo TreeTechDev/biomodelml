@@ -13,7 +13,6 @@ MAX_POSSIBLE_SCORE = 1.0
 class SSIMVariant(Variant):
 
     name = "Structural Similarity Index Measure"
-
     filter_size = 11
 
     def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
@@ -57,7 +56,9 @@ class SSIMVariant(Variant):
         if c12 > big_img.shape[1] or c22 > big_img.shape[1] or l22 > big_img.shape[1]:
             return max_score, max_pos, last_line
         
-        score = self._call_alg(small_img[:, c11:c12], big_img[l21:l22, c21:c22])
+        score = self._call_alg(
+            tensorflow.expand_dims(small_img[:, c11:c12], axis=0),
+            tensorflow.expand_dims(big_img[l21:l22, c21:c22], axis=0))
         if score == MAX_POSSIBLE_SCORE:
             return score, c21, l21
         elif score > max_score:
@@ -69,11 +70,11 @@ class SSIMVariant(Variant):
 
     def _match_images(self, image: Tensor, other: Tensor) -> float:
         if image.shape[1] > other.shape[1]:
-            max_img = image.numpy()[0]
-            min_img = other.numpy()[0]
+            max_img = image.numpy()[0][:,:,:]
+            min_img = other.numpy()[0][:,:,:]
         else:
-            min_img = image.numpy()[0]
-            max_img = other.numpy()[0]
+            min_img = image.numpy()[0][:,:,:]
+            max_img = other.numpy()[0][:,:,:]
         positions = dict()
         mask_size = min_img.shape[1]
         max_score = 0

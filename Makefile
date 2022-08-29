@@ -72,7 +72,7 @@ tree:
 validate:
 	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
 
-run: | pull sanitize matches tree validate
+run: | sanitize matches tree validate
 
 experiments:
 	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
