@@ -51,7 +51,7 @@ class SSIMVariant(Variant):
         c11: int, c12: int,
         l21: int, l22: int,
         c21: int, c22: int,
-        max_score: int, max_pos: int, last_line: int
+        max_score: int, max_pos: int, last_line: int, step: int
     ):
         if c12 > big_img.shape[1] or c22 > big_img.shape[1] or l22 > big_img.shape[1]:
             return max_score, max_pos, last_line
@@ -63,10 +63,10 @@ class SSIMVariant(Variant):
             return score, c21, l21
         elif score > max_score:
             return self._find_image_match(
-                small_img, big_img, c11, c12, l21+1, l22+1, c21+1, c22+1, score, c21, l21)
+                small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, score, c21, l21, step)
         else:
             return self._find_image_match(
-                small_img, big_img, c11, c12, l21+1, l22+1, c21+1, c22+1, max_score, max_pos, last_line)
+                small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, max_score, max_pos, last_line, step)
 
     def _match_images(self, image: Tensor, other: Tensor) -> float:
         if image.shape[1] > other.shape[1]:
@@ -75,24 +75,25 @@ class SSIMVariant(Variant):
         else:
             min_img = image.numpy()[0][:,:,:]
             max_img = other.numpy()[0][:,:,:]
-        positions = dict()
+        positions = list()
         mask_size = min_img.shape[1]
         max_score = 0
         max_pos = 0
         last_line = 0
         filter_size = self.filter_size
+        step = filter_size // 2
 
-        for j in range(0, mask_size, filter_size):
-            step = min(mask_size, j+filter_size)
+        for j in range(0, mask_size - filter_size, step):
+            window = min(mask_size, j+filter_size)
             last_score, last_pos, last_line = self._find_image_match(
                 min_img, max_img,
-                j, step,
+                j, window,
                 last_line, mask_size+last_line,
-                last_line+j, last_line+step,
-                max_score, max_pos, last_line
+                last_line+j, last_line+window,
+                max_score, max_pos, last_line, step
             )
-            positions[last_pos] = last_score
-        return numpy.mean(list(positions.values()))
+            positions.append(last_score)
+        return numpy.mean(positions)
         
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
