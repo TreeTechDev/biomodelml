@@ -10,7 +10,7 @@ RESIZE_FACTOR = 2**(len(_MSSSIM_WEIGHTS)-1)  # https://github.com/tensorflow/ten
 class SSIMMultiScaleVariant(SSIMVariant):
 
     name = "MultiScale Structural Similarity Index Measure"
-    filter_resized = 11
+    filter_resized = 3
     filter_size = filter_resized * RESIZE_FACTOR
 
     def _call_alg(self, image: Tensor, other: Tensor) -> float:

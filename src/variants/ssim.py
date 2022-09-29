@@ -13,7 +13,7 @@ MAX_POSSIBLE_SCORE = 1.0
 class SSIMVariant(Variant):
 
     name = "Structural Similarity Index Measure"
-    filter_size = 11
+    filter_size = 3
 
     def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
         super().__init__(fasta_file, sequence_type)
