@@ -52,6 +52,8 @@ def objective(trial):
 if __name__ == "__main__":
     study = optuna.create_study(
         storage="sqlite:///optimize.db",
+        study_name="bioinfo",
+        load_if_exists= True,
         direction="maximize",
         sampler=optuna.samplers.TPESampler(seed=SEED),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10)
