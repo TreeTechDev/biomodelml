@@ -55,19 +55,12 @@ matches:
 tree-by-channel:
 	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/$(CHANNEL) $(TYPE) $(DATA_DIR)/images/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
 
-tree:
-	CHANNEL="full" $(MAKE) tree-by-channel
-	CHANNEL="red" $(MAKE) tree-by-channel
-	CHANNEL="green" $(MAKE) tree-by-channel
-	CHANNEL="blue" $(MAKE) tree-by-channel
-	CHANNEL="red_green" $(MAKE) tree-by-channel
-	CHANNEL="red_blue" $(MAKE) tree-by-channel
-	CHANNEL="green_blue" $(MAKE) tree-by-channel
-	CHANNEL="gray_r" $(MAKE) tree-by-channel
-	CHANNEL="gray_g" $(MAKE) tree-by-channel
-	CHANNEL="gray_b" $(MAKE) tree-by-channel
-	CHANNEL="gray_max" $(MAKE) tree-by-channel
-	CHANNEL="gray_mean" $(MAKE) tree-by-channel
+t_%:
+	CHANNEL="$*" $(MAKE) tree-by-channel
+
+
+tree: t_full t_red t_green t_blue t_red_green t_red_blue t_green_blue t_gray_r t_gray_b t_gray_g t_gray_max t_gray_mean
+
 
 validate:
 	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
