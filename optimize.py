@@ -51,7 +51,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     study = optuna.create_study(
-        storage="sqlite:////tmp/optimize.db",
+        storage="sqlite:////app/optimize.db",
         study_name="bioinfo",
         load_if_exists= True,
         direction="maximize",
