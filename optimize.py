@@ -23,6 +23,7 @@ def objective(trial):
         filter_sigma=trial.suggest_float("filter_sigma", 0.0, 2.0),
         k1=trial.suggest_float("k1", 0.0, 0.1),
         k2=trial.suggest_float("k2", 0.0, 0.1),
+        filter_size=trial.suggest_int("filter_size", 3, 12)
     )
     fasta_file = data_path / f"{seq}.fasta.sanitized"
     experiment = Experiment(
@@ -55,7 +56,7 @@ if __name__ == "__main__":
         sampler=optuna.samplers.TPESampler(seed=SEED),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10)
     )
-    study.optimize(objective, n_trials=2)
+    study.optimize(objective, n_trials=500)
     print("Best Params")
     print(study.best_params)
     print("Best Values")

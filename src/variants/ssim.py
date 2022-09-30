@@ -13,6 +13,7 @@ DEFAULT_PARAMS = dict(
     filter_sigma=1.5,
     k1=0.01,
     k2=0.03,
+    filter_size = 3,
     max_val=255
 )
 
@@ -20,19 +21,18 @@ DEFAULT_PARAMS = dict(
 class SSIMVariant(Variant):
 
     name = "Structural Similarity Index Measure"
-    filter_size = 3
 
     def __init__(self, fasta_file: str, sequence_type: str, image_folder: str, **alg_params):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
         self._alg_params = DEFAULT_PARAMS
         self._alg_params.update(alg_params)
+        self.filter_size = self._alg_params["filter_size"]
     
     def _call_alg(self, image: Tensor, other: Tensor) -> float:
         return tensorflow.image.ssim(
                                 image,
                                 other,
-                                filter_size=self.filter_size,
                                 **self._alg_params)[0].numpy()
 
     def _read_image(self, img_name: str) -> Tensor:
