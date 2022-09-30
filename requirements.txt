@@ -9,3 +9,4 @@ ppscore>=1.2.0
 opencv-python>=4.5.4.60
 annoy==1.17.0
 matplotlib>=3.4.3
+optuna==3.0.2

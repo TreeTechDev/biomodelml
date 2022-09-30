@@ -1,4 +1,4 @@
-.PHONY: clean build test pull push sanitize matches tree run experiments try
+.PHONY: clean build test pull push sanitize matches tree run experiments optimize try
 
 .SECONDARY:
 
@@ -73,6 +73,10 @@ e_%:
 	SEQ="orthologs_$*" TYPE="N" $(MAKE) run
 
 experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
+
+optimize:
+	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) sanitize
+	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) orthologs_neuroglobin" $(MAKE) run-docker
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*

@@ -178,6 +178,6 @@ def main(tree_path, dataset):
 
 if __name__ == "__main__":
     tree_path = sys.argv[1]
-    dataset = sys.argv[2]
+    dataset = sys.argv[2] if len(sys.argv) == 3 else None
     main(tree_path, dataset)
 

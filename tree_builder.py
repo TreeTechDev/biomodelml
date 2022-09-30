@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import os
 import sys
 from typing import Optional
@@ -10,6 +13,8 @@ from src.variants.uqi import UQIVariant
 from src.variants.ssim import SSIMVariant
 from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.variants.deep_search.variant import DeepSearchVariant
+
+sys.setrecursionlimit(1000000)
 
 
 def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Optional[str] = None):
