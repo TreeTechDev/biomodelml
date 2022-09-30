@@ -31,7 +31,7 @@ push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run -it -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
 iqtree:
 	CMD="iqtree -s '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.fasta' -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw'" $(MAKE) run-docker
@@ -81,4 +81,4 @@ experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglo
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
-	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel validate
+	DOCKER_FLAGS="-it" SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel validate
