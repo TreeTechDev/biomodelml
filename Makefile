@@ -74,13 +74,10 @@ validate:
 
 run: | sanitize matches tree validate
 
-experiments:
-	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
-	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) run
-	SEQ="indelible" TYPE="N" $(MAKE) run
+e_%: 
+	SEQ="orthologs_$*" TYPE="N" $(MAKE) run
+
+experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*

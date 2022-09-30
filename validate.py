@@ -157,21 +157,23 @@ def branch_score(tree_path: str, dataset: str = None):
         sum_dfs.append(pandas.concat(dfs))
     return pandas.concat(sum_dfs, axis=1).T.reset_index().drop_duplicates().set_index("index").T
 
-def pretty_print(df: pandas.Dataframe):
-    df.rename(columns={
+def pretty_print(df: pandas.DataFrame):
+    df = df.rename(columns={
         "Control with Clustal Omega": "control",
         "Global with Needleman-Wunsch": "global",
         "Local with Smith–Waterman": "local"
-    })[["control", "global", "local"] + CHANNELS]
+    })
+    print(
+        df.loc[:,df.columns.isin(["control", "global", "local"] + CHANNELS)])
 
 
 def main(tree_path, dataset):
     print(f"Comparing for {DEFAULT_ALG}")
-    print(euclidean(tree_path, dataset))
-    print(linear_correlation(tree_path, dataset))
-    print(pps(tree_path, dataset))
-    print(robinson_foulds(tree_path, dataset))
-    print(branch_score(tree_path, dataset))
+    pretty_print(euclidean(tree_path, dataset))
+    pretty_print(linear_correlation(tree_path, dataset))
+    pretty_print(pps(tree_path, dataset))
+    pretty_print(robinson_foulds(tree_path, dataset))
+    pretty_print(branch_score(tree_path, dataset))
 
 
 if __name__ == "__main__":
