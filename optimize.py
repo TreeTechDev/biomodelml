@@ -54,7 +54,7 @@ if __name__ == "__main__":
         storage="sqlite:////app/optimize.db",
         study_name="bioinfo",
         load_if_exists= True,
-        direction="maximize",
+        direction="minimize",
         sampler=optuna.samplers.TPESampler(seed=SEED),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10)
     )
