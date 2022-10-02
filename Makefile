@@ -75,8 +75,8 @@ e_%:
 experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
 
 optimize:
-	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) sanitize
-	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) orthologs_neuroglobin" $(MAKE) run-docker
+	TYPE="N" $(MAKE) sanitize
+	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
