@@ -7,4 +7,4 @@ __pycache__
 !data/images/.keep
 !data/trees/.keep
 .ipynb_checkpoints/
-.db
+*.db

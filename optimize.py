@@ -50,8 +50,10 @@ def objective(trial):
     return control_tree.compare(tree, unrooted=True)["norm_rf"]
 
 if __name__ == "__main__":
+
+    seq = sys.argv[2]
     study = optuna.create_study(
-        storage="sqlite:////app/optimize.db",
+        storage=f"sqlite:////app/{seq}.db",
         study_name="bioinfo",
         load_if_exists= True,
         direction="minimize",
