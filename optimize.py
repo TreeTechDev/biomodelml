@@ -3,7 +3,6 @@
 
 import sys
 import optuna
-import pandas
 from ete3 import Tree
 from pathlib import Path
 from src.variants.control import ControlVariant
@@ -20,10 +19,8 @@ def objective(trial):
     seq = sys.argv[2]
 
     params = dict(
-        filter_sigma=trial.suggest_float("filter_sigma", 0.0, 2.0),
-        k1=trial.suggest_float("k1", 0.0, 0.1),
-        k2=trial.suggest_float("k2", 0.0, 0.1),
-        filter_size=trial.suggest_int("filter_size", 3, 12)
+        filter_sigma=trial.suggest_float("filter_sigma", 0.0, 1.5, step=0.1),
+        filter_size=trial.suggest_int("filter_size", 3, 7)
     )
     fasta_file = data_path / f"{seq}.fasta.sanitized"
     experiment = Experiment(
@@ -53,7 +50,7 @@ if __name__ == "__main__":
 
     seq = sys.argv[2]
     study = optuna.create_study(
-        storage=f"sqlite:////app/{seq}.db",
+        storage=f"sqlite:////app/data/{seq}.db",
         study_name="bioinfo",
         load_if_exists= True,
         direction="minimize",

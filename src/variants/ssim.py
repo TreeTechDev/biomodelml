@@ -4,6 +4,7 @@ import numpy
 import tensorflow
 from tensorflow import Tensor
 from typing import Tuple
+from src.context import RecursionContext
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
 
@@ -122,9 +123,10 @@ class SSIMVariant(Variant):
             for img2 in files[idx:]:
                 img = self._read_image(img1)
                 other = self._read_image(img2)
-                results.append(
-                    self._match_images(img, other)
-                )
+                with RecursionContext():
+                    results.append(
+                        self._match_images(img, other)
+                    )
             if last_ids:
                 df.loc[idx1, indexes[idx:]] = results
                 df.loc[idx1, last_ids] = df.loc[last_ids, idx1]
