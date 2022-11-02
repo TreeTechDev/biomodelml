@@ -1,7 +1,9 @@
-.PHONY: clean build push sanitize matches tree run experiments
+.PHONY: clean build test pull push sanitize matches tree run experiments optimize try
 
 .SECONDARY:
 
+NPROCS = $(shell grep -c 'processor' /proc/cpuinfo)
+MAKEFLAGS += -j$(NPROCS)
 APP_DIR="/app"
 DATA_DIR=$(APP_DIR)/data
 FULL_ROOT_DIR=`pwd`
@@ -21,11 +23,17 @@ clean:
 build:
 	docker build . -t $(IMG_NAME)
 
+test:
+	CMD="pytest $(APP_DIR)" $(MAKE) run-docker
+
+pull:
+	docker pull $(IMG_NAME)
+
 push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run -it -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
 iqtree:
 	CMD="iqtree -s '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.fasta' -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw'" $(MAKE) run-docker
@@ -44,31 +52,32 @@ sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
 
 matches:
-	CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
+	@CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
 
 tree-by-channel:
 	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/$(CHANNEL) $(TYPE) $(DATA_DIR)/images/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
 
-tree:
-	CHANNEL="red" $(MAKE) tree-by-channel
-	CHANNEL="green" $(MAKE) tree-by-channel
-	CHANNEL="blue" $(MAKE) tree-by-channel
-	CHANNEL="full" $(MAKE) tree-by-channel
-	CHANNEL="red_green" $(MAKE) tree-by-channel
-	CHANNEL="red_blue" $(MAKE) tree-by-channel
-	CHANNEL="green_blue" $(MAKE) tree-by-channel
-	CHANNEL="gray_r" $(MAKE) tree-by-channel
-	CHANNEL="gray_g" $(MAKE) tree-by-channel
-	CHANNEL="gray_b" $(MAKE) tree-by-channel
-	CHANNEL="gray_max" $(MAKE) tree-by-channel
-	CHANNEL="gray_mean" $(MAKE) tree-by-channel
+t_%:
+	CHANNEL="$*" $(MAKE) tree-by-channel
 
-run: | sanitize matches tree
 
-experiments:
-	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) run
-	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
-	SEQ="indelible" TYPE="N" $(MAKE) run
+tree: t_full t_red t_green t_blue t_red_green t_red_blue t_green_blue t_gray_r t_gray_b t_gray_g t_gray_max t_gray_mean
+
+
+validate:
+	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
+
+run: | sanitize matches tree validate
+
+e_%: 
+	SEQ="orthologs_$*" TYPE="N" $(MAKE) run
+
+experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
+
+optimize:
+	TYPE="N" $(MAKE) sanitize
+	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
+
+try:
+	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
+	DOCKER_FLAGS="-it" SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel validate

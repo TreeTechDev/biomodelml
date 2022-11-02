@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import os
 import sys
 from typing import Optional
+from pathlib import Path
 from src.experiment import Experiment
 from src.variants.control import ControlVariant
 from src.variants.sw import SmithWatermanVariant
@@ -10,10 +14,12 @@ from src.variants.ssim import SSIMVariant
 from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.variants.deep_search.variant import DeepSearchVariant
 
+sys.setrecursionlimit(1000000)
+
 
 def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Optional[str] = None):
     Experiment(
-        output_path,
+        Path(output_path),
         ControlVariant(fasta_file, sequence_type),
         SmithWatermanVariant(fasta_file, sequence_type),
         NeedlemanWunschVariant(fasta_file, sequence_type),

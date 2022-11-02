@@ -17,3 +17,9 @@ class TreeStruct:
     name: str
     distances: DistanceStruct
     tree: Tree
+
+
+@dataclass
+class SeqTypeStruct:
+    N: List[str]
+    P: List[str]

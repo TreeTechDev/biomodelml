@@ -2,28 +2,39 @@ import os
 import pandas
 import numpy
 import tensorflow
-import cv2
 from tensorflow import Tensor
 from typing import Tuple
+from src.context import RecursionContext
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
 
+
+MAX_POSSIBLE_SCORE = 1.0
+DEFAULT_PARAMS = dict(
+    filter_sigma=1.5,
+    k1=0.01,
+    k2=0.03,
+    filter_size = 3,
+    max_val=255
+)
 
 
 class SSIMVariant(Variant):
 
     name = "Structural Similarity Index Measure"
 
-    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
+    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str, **alg_params):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
+        self._alg_params = DEFAULT_PARAMS
+        self._alg_params.update(alg_params)
+        self.filter_size = self._alg_params["filter_size"]
     
-    def _call_alg(self, image: Tensor, other: Tensor) -> numpy.ndarray:
+    def _call_alg(self, image: Tensor, other: Tensor) -> float:
         return tensorflow.image.ssim(
                                 image,
                                 other,
-                                max_val=255, filter_size=11,
-                                filter_sigma=1.5, k1=0.01, k2=0.03)[0].numpy()
+                                **self._alg_params)[0].numpy()
 
     def _read_image(self, img_name: str) -> Tensor:
         img = tensorflow.expand_dims(
@@ -43,24 +54,56 @@ class SSIMVariant(Variant):
             tensorflow.image.resize(other, (max_x, max_y), tensorflow.image.ResizeMethod.BICUBIC)
         )
 
-    # def _match_images(self, image: Tensor, other: Tensor) -> Tuple[Tensor]:
-    #     if image.shape[1] > other.shape[1]:
-    #         max_img = image.numpy().squeeze(0)
-    #         min_img = other.numpy().squeeze(0)
-    #     else:
-    #         min_img = image.numpy().squeeze(0)
-    #         max_img = other.numpy().squeeze(0)
+    def _find_image_match(
+        self,
+        small_img: numpy.ndarray,
+        big_img: numpy.ndarray,
+        c11: int, c12: int,
+        l21: int, l22: int,
+        c21: int, c22: int,
+        max_score: int, last_line: int, step: int
+    ):
+        if c12 > big_img.shape[1] or c22 > big_img.shape[1] or l22 > big_img.shape[1]:
+            return max_score, last_line
         
-    #     w, h, _ = min_img.shape
-        
-    #     res = cv2.matchTemplate(max_img, min_img, cv2.TM_CCOEFF_NORMED)
-    #     _, _, _, max_loc = cv2.minMaxLoc(res)
-    #     max_cropped = max_img[max_loc[1]:max_loc[1]+w, max_loc[0]:max_loc[0]+h, :]
-    #     return (
-    #         tensorflow.expand_dims(min_img, axis=0),
-    #         tensorflow.expand_dims(max_cropped, axis=0)
-    #     )
+        score = self._call_alg(
+            tensorflow.expand_dims(small_img[:, c11:c12], axis=0),
+            tensorflow.expand_dims(big_img[l21:l22, c21:c22], axis=0))
+        if score == MAX_POSSIBLE_SCORE:
+            return score, l21
+        elif score > max_score:
+            return self._find_image_match(
+                small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, score, l21, step)
+        else:
+            return self._find_image_match(
+                small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, max_score, last_line, step)
 
+    def _match_images(self, image: Tensor, other: Tensor) -> float:
+        if image.shape[1] > other.shape[1]:
+            max_img = image.numpy()[0][:,:,:]
+            min_img = other.numpy()[0][:,:,:]
+        else:
+            min_img = image.numpy()[0][:,:,:]
+            max_img = other.numpy()[0][:,:,:]
+        positions = list()
+        mask_size = min_img.shape[1]
+        max_score = 0
+        last_line = 0
+        filter_size = self.filter_size
+        step = filter_size // 2
+
+        for j in range(0, mask_size - filter_size, step):
+            window = min(mask_size, j+filter_size)
+            last_score, last_line = self._find_image_match(
+                min_img, max_img,
+                j, window,
+                last_line, mask_size+last_line,
+                last_line+j, last_line+window,
+                max_score, last_line, step
+            )
+            positions.append(last_score)
+        return numpy.mean(positions)
+        
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
         indexes = {".".join(img.split('.')[:-1]): img.split('.')[-1] for img in files}
@@ -78,13 +121,12 @@ class SSIMVariant(Variant):
             idx1 = indexes[idx]
             results = list()
             for img2 in files[idx:]:
-                img, other = self._upscale_images(
-                    self._read_image(img1),
-                    self._read_image(img2)
-                )
-                results.append(
-                    self._call_alg(img, other)
-                )
+                img = self._read_image(img1)
+                other = self._read_image(img2)
+                with RecursionContext():
+                    results.append(
+                        self._match_images(img, other)
+                    )
             if last_ids:
                 df.loc[idx1, indexes[idx:]] = results
                 df.loc[idx1, last_ids] = df.loc[last_ids, idx1]
