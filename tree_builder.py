@@ -14,8 +14,6 @@ from src.variants.ssim import SSIMVariant
 from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.variants.deep_search.variant import DeepSearchVariant
 
-sys.setrecursionlimit(1000000)
-
 
 def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Optional[str] = None):
     Experiment(
@@ -23,10 +21,10 @@ def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Opti
         ControlVariant(fasta_file, sequence_type),
         SmithWatermanVariant(fasta_file, sequence_type),
         NeedlemanWunschVariant(fasta_file, sequence_type),
-        SSIMVariant(fasta_file, sequence_type, image_path),
-        SSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
-        UQIVariant(fasta_file, sequence_type, image_path),
-        DeepSearchVariant(fasta_file, sequence_type, image_path)
+        # SSIMVariant(fasta_file, sequence_type, image_path),
+        SSIMMultiScaleVariant(fasta_file, sequence_type, image_path)
+        # UQIVariant(fasta_file, sequence_type, image_path),
+        # DeepSearchVariant(fasta_file, sequence_type, image_path)
     ).run().save()
 
 if __name__ == "__main__":

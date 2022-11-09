@@ -1,6 +1,4 @@
 from __future__ import annotations
-from os import path
-import pathlib
 import traceback
 import pandas
 from pathlib import Path
@@ -38,6 +36,16 @@ class Experiment:
             columns=tree_struct.distances.names).to_csv(
                 self._output_path / f"{tree_struct.name}.csv"
             )
+
+    def _save_img_positions(self, tree_struct: TreeStruct):
+        if tree_struct.distances.img_positions:
+            pos = "img1,img2,score,start_col,start_line,stop_col,stop_line,max_size\n"
+            for items in tree_struct.distances.img_positions:
+                img1, img2, positions = items
+                for position in positions:
+                    pos += f"{img1},{img2},{','.join(position)}\n"
+            with open(self._output_path / f"{tree_struct.name}.map", "w") as f:
+                f.write(pos)
 
     def _save_align(self, tree_struct: TreeStruct):
         if tree_struct.distances.align:
@@ -77,6 +85,7 @@ class Experiment:
     def save(self):
         fig = pyplot.figure(figsize=(12.0, 12.0))
         for tree_struct in self._trees:
+            self._save_img_positions(tree_struct)
             self._save_align(tree_struct)
             self._save_newick_tree(tree_struct)
             self._save_distance_matrix(tree_struct)

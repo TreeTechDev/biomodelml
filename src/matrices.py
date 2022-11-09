@@ -4,45 +4,13 @@ from matplotlib import pyplot
 from Bio.Seq import Seq
 
 
-def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray):
+def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
     indexes = dict()
     for line, letter in enumerate(seq2):
         if letter not in indexes:
             indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
-        rows[line, idx] = 255
-    # all_lines, all_columns = numpy.where(rows == 1)
-    # lines, columns = all_lines.copy(), all_columns.copy()
-    # line = lines[0]
-    # col = columns[0]
-    # total_r = 1
-    # while(lines.size):
-    #     if numpy.where(all_columns[numpy.where(all_lines == line + total_r)[0]] == col + total_r)[0].size == 1:
-    #         total_r += 1
-    #         for k in range(total_r):
-    #             rows[line+k, col+k] = max(rows[line+k, col+k], total_r)
-    #     else:
-    #         line = lines[0]
-    #         lines = lines[1:]
-    #         col = columns[0]
-    #         columns = columns[1:]
-    #         total_r = 1
-    # lines, columns = all_lines.copy(), all_columns.copy()
-    # line = lines[0]
-    # col = columns[0]
-    # total_l = 1
-    # while(lines.size):
-    #     if numpy.where(all_columns[numpy.where(all_lines == line + total_l)[0]] == col - total_l)[0].size == 1:
-    #         total_l += 1
-    #         for k in range(total_l):
-    #             rows[line+k, col-k] = max(rows[line+k, col-k], total_l)
-
-    #     else:
-    #         line = lines[0]
-    #         lines = lines[1:]
-    #         col = columns[0]
-    #         columns = columns[1:]
-    #         total_l = 1
+        rows[line, idx] = max_window
     return rows
 
 
@@ -59,38 +27,14 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     seq2_reverse = str(seq2.reverse_complement())
     seq2 = str(seq2)
     rows = numpy.zeros((len2, len1, 3))
-    norm = numpy.zeros((1, 1, 3))
 
     #  red
-    rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0])
-    # norm[:, :, 0] = max(rows[:, :, 0].max(), numpy.e)
+    rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
     #  green
-    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1])
-    # norm[:, :, 1] = max(rows[:, :, 1].max(), numpy.e)
+    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1], max_window)
     #  blue    
-    normalizer = numpy.zeros((len2, len1))
-    all_lines, all_columns = numpy.where(rows[:, :, 0] == 0)
-    for i in range(all_lines.size):
-        line = all_lines[i]
-        col = all_columns[i]
-        diags = ((line-1, col-1), (line-1, col+1), (line+1, col+1), (line+1, col-1))
-        parents = ((line-2, col-2), (line-2, col+2), (line+2, col+2), (line+2, col-2))
-        args = {}
-        for j, (x, y) in enumerate(diags):
-            if x < rows.shape[0] and y < rows.shape[1]:
-                val = rows[x, y, 2]
-                px, py = parents[j]
-                if px < rows.shape[0] and py < rows.shape[1] and val > rows[px, py, 2]:
-                    continue
-                args[j] = val                
-
-        if not args or (args.get(0) or args.get(1)) and (args.get(2) or args.get(3)): continue
-        normalizer[line, col] = 255 #max(list(args.values()))
-    rows[:, :, 2] = normalizer
-    # norm[:, :, 2] = max(rows[:, :, 2].max(), numpy.e)
-    #  norm
-    # rows = numpy.ma.log(rows).filled(0) * max_window / numpy.ma.log(norm).filled(1)
-    # rows = rows * max_window / norm
+    all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
+    rows[all_lines, all_columns, 2] = max_window
     return rows
 
 

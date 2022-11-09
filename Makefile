@@ -47,7 +47,6 @@ compare:
 view:
 	CMD="ete3 view -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw'" $(MAKE) run-docker
 
-# example: SEQ=MIDORI_LONGEST_NUC_GB246_A6_RAW TYPE=N make sanitize
 sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
 
@@ -60,9 +59,7 @@ tree-by-channel:
 t_%:
 	CHANNEL="$*" $(MAKE) tree-by-channel
 
-
 tree: t_full t_red t_green t_blue t_red_green t_red_blue t_green_blue t_gray_r t_gray_b t_gray_g t_gray_max t_gray_mean
-
 
 validate:
 	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
@@ -74,10 +71,9 @@ e_%:
 
 experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
 
-optimize:
-	TYPE="N" $(MAKE) sanitize
+optimize: | sanitize matches
 	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
-	DOCKER_FLAGS="-it" SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel validate
+	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
