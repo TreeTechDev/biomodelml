@@ -22,6 +22,7 @@ clean:
 
 build:
 	docker build . -t $(IMG_NAME)
+	pip install 'dvc==2.34.0' 'dvc-gdrive==2.19.0'
 
 test:
 	CMD="pytest $(APP_DIR)" $(MAKE) run-docker

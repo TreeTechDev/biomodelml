@@ -1,8 +1,6 @@
 data/*
 __pycache__
 !data/.keep
-!data/*.fasta
-!data/*.fas
 !data/matrix/.keep
 !data/images/.keep
 !data/trees/.keep
