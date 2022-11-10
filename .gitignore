@@ -1,8 +1,4 @@
 data/*
 __pycache__
-!data/.keep
-!data/matrix/.keep
-!data/images/.keep
-!data/trees/.keep
 .ipynb_checkpoints/
 *.db
