@@ -20,7 +20,7 @@ clean:
 
 build:
 	docker build . -t $(IMG_NAME)
-	pip install 'dvc==2.34.0'
+	pip install 'dvc==2.34.0' 'dvc-gdrive==2.19.0'
 
 push:
 	docker push $(IMG_NAME)
