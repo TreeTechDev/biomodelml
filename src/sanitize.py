@@ -13,7 +13,7 @@ def remove_unrelated_sequences(seq_path: str, seq_type):
     if seq_type not in SEQ_TYPES.__dataclass_fields__:
         raise IOError("Only sequence type N or P accepted")
     if os.path.exists(seq_path + ".sanitized"):
-        print(f"already sanitized file f{seq_path + '.sanitized'}")
+        print(f"already sanitized file {seq_path + '.sanitized'}")
         return
     with open(seq_path) as handle:
         sequences = SeqIO.parse(handle, "fasta")
