@@ -3,7 +3,7 @@
 .SECONDARY:
 
 NPROCS = $(shell grep -c 'processor' /proc/cpuinfo)
-MAKEFLAGS += -j$(NPROCS)
+MAKEFLAGS += -j1
 APP_DIR="/app"
 DATA_DIR=$(APP_DIR)/data
 FULL_ROOT_DIR=`pwd`
