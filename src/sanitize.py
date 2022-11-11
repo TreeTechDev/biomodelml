@@ -1,3 +1,4 @@
+import os
 from Bio import SeqIO
 from biotite.sequence import NucleotideSequence, ProteinSequence
 from src.structs import SeqTypeStruct
@@ -14,10 +15,12 @@ def remove_unrelated_sequences(seq_path: str, seq_type):
     with open(seq_path) as handle:
         sequences = SeqIO.parse(handle, "fasta")
         sanitized_seqs = []
-        for s in sequences:
+        for k, s in enumerate(sequences):
+            if os.path.exists(seq_path + ".sanitized"):
+                continue
             alphabet = set(s.seq)
             if alphabet.issubset(getattr(SEQ_TYPES, seq_type)):
                 sanitized_seqs.append(s)
 
-    print(f"writing {len(sanitized_seqs)} sequences")
+    print(f"writing {len(sanitized_seqs)} of {k+1} sequences")
     SeqIO.write(sanitized_seqs, seq_path + ".sanitized", "fasta")
