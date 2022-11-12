@@ -13,10 +13,10 @@ from src.structs import DistanceStruct, ImgMap
 
 MAX_POSSIBLE_SCORE = 1.0
 DEFAULT_PARAMS = dict(
-    filter_sigma=0.2,
+    filter_sigma=1.5,
     k1=0.01,
     k2=0.03,
-    filter_size=3,
+    filter_size=11,
     max_val=255
 )
 

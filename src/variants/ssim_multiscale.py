@@ -3,7 +3,6 @@ import tensorflow
 from tensorflow import Tensor
 from typing import Tuple, List
 from src.variants.ssim import SSIMVariant
-from src.structs import ImgMap
 
 
 class SSIMMultiScaleVariant(SSIMVariant):
