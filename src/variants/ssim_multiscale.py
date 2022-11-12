@@ -47,11 +47,11 @@ class SSIMMultiScaleVariant(SSIMVariant):
  
     def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[int]]:
         if image.shape[1] > other.shape[1]:
-            max_img = image.numpy()[0][:,:,:]
-            min_img = other.numpy()[0][:,:,:]
+            max_img = image.numpy()[0]
+            min_img = other.numpy()[0]
         else:
-            min_img = image.numpy()[0][:,:,:]
-            max_img = other.numpy()[0][:,:,:]
+            min_img = image.numpy()[0]
+            max_img = other.numpy()[0]
         filter_size = min_img.shape[1]
         step = 1
         score = self._dynamic_find_image_match(

@@ -97,11 +97,11 @@ class SSIMVariant(Variant):
 
     def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[int]]:
         if image.shape[1] > other.shape[1]:
-            max_img = image.numpy()[0][:,:,:]
-            min_img = other.numpy()[0][:,:,:]
+            max_img = image.numpy()[0]
+            min_img = other.numpy()[0]
         else:
-            min_img = image.numpy()[0][:,:,:]
-            max_img = other.numpy()[0][:,:,:]
+            min_img = image.numpy()[0]
+            max_img = other.numpy()[0]
 
         mask_size = min_img.shape[1]
         filter_size = self.filter_size
