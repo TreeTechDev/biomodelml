@@ -78,15 +78,15 @@ class SSIMVariant(Variant):
         last_line = 0
         scores = list()
         positions = list()
+        start_score = 0
         for j in range(0, mask_size - filter_size, step):
-            max_score = 0
             window = min(mask_size, j+filter_size)
             last_score, last_line = self._greedy_find_image_match(
                 min_img, max_img,
                 j, window,
                 last_line, mask_size+last_line,
                 last_line+j, last_line+window,
-                max_score, last_line, step
+                start_score, last_line, step
             )
             scores.append(last_score)
             positions.append(

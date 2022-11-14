@@ -48,11 +48,13 @@ def test_should_save_experiment(mock_pandas, tmp_path):
     t1 = mock.Mock()
     t1.name = "t1"
     t1.distances.align.get_gapped_sequences = mock.Mock(return_value=["a", "b", "c"])
+    t1.distances.img_positions = []
     t1.distances.names = ["C", "A", "B"]
     t1.tree.to_newick = mock.Mock(return_value="(1,2);")
     t2 = mock.Mock()
     t2.name = "t2"
     t2.distances.align.get_gapped_sequences = mock.Mock(return_value=["a", "b", "c"])
+    t2.distances.img_positions = [("img1", "img2", ("1", "2", "3"))]
     t2.distances.names = ["C", "A", "B"]
     t2.tree.to_newick = mock.Mock(return_value="(1,0);")
     exp._trees = [t1, t2]
@@ -77,11 +79,13 @@ def test_should_save_experiment_without_alignment(mock_pandas, tmp_path):
     t1.name = "t1"
     t1.distances.align = False
     t1.distances.names = ["C", "A", "B"]
+    t1.distances.img_positions = []
     t1.tree.to_newick = mock.Mock(return_value="(1,2);")
     t2 = mock.Mock()
     t2.name = "t2"
     t2.distances.align = False
     t2.distances.names = ["C", "A", "B"]
+    t2.distances.img_positions = [("img1", "img2", ("1", "2", "3"))]
     t2.tree.to_newick = mock.Mock(return_value="(1,0);")
     exp._trees = [t1, t2]
     exp.save()
