@@ -6,12 +6,29 @@ import optuna
 from ete3 import Tree
 from pathlib import Path
 from src.variants.control import ControlVariant
-from src.variants.ssim import SSIMVariant
+from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.experiment import Experiment
 
-DEFAULT_ALG = "Structural Similarity Index Measure"
+DEFAULT_ALG = "MultiScale Structural Similarity Index Measure"
 CONTROL_ALG = "Control with Clustal Omega"
 SEED = 42
+
+def control():
+    data_path = Path(sys.argv[1])
+    seq = sys.argv[2]
+    fasta_file = data_path / f"{seq}.fasta.sanitized"
+    experiment = Experiment(
+        data_path,
+        ControlVariant(fasta_file, "N")
+    ).run()
+    for tree_struct in experiment._trees:
+        if tree_struct.name == CONTROL_ALG:
+            newick_ctl = tree_struct.tree.to_newick(
+                labels=tree_struct.distances.names,
+                include_distance=False)    
+    return Tree(newick_ctl, format=1)
+
+CONTROL_TREE = control()
 
 
 def objective(trial):
@@ -20,13 +37,12 @@ def objective(trial):
 
     params = dict(
         filter_sigma=trial.suggest_float("filter_sigma", 0.0, 1.5, step=0.1),
-        filter_size=trial.suggest_int("filter_size", 3, 7)
+        filter_size=trial.suggest_int("filter_size", 3, 15)
     )
     fasta_file = data_path / f"{seq}.fasta.sanitized"
     experiment = Experiment(
         data_path,
-        ControlVariant(fasta_file, "N"),
-        SSIMVariant(
+        SSIMMultiScaleVariant(
             fasta_file,
             "N",
             data_path / "images" / seq / "full",
@@ -38,13 +54,8 @@ def objective(trial):
             newick_alg = tree_struct.tree.to_newick(
                 labels=tree_struct.distances.names,
                 include_distance=False)
-        elif tree_struct.name == CONTROL_ALG:
-            newick_ctl = tree_struct.tree.to_newick(
-                labels=tree_struct.distances.names,
-                include_distance=False)    
-    control_tree = Tree(newick_ctl, format=1)
     tree = Tree(newick_alg, format=1)
-    return control_tree.compare(tree, unrooted=True)["norm_rf"]
+    return CONTROL_TREE.compare(tree, unrooted=True)["norm_rf"]
 
 if __name__ == "__main__":
 
@@ -57,7 +68,7 @@ if __name__ == "__main__":
         sampler=optuna.samplers.TPESampler(seed=SEED),
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10)
     )
-    study.optimize(objective, n_trials=500)
+    study.optimize(objective, n_trials=200)
     print("Best Params")
     print(study.best_params)
     print("Best Values")
