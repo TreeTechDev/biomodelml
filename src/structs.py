@@ -4,17 +4,33 @@ from typing import List, Optional, Any
 from biotite.sequence.phylo import Tree
 from biotite.sequence.align import Alignment
 
+
+@dataclass
+class ImgDebug:
+    score: str
+    start_col: str
+    start_line: str
+    stop_col: str
+    stop_line: str
+    max_size: str
+
 @dataclass
 class ImgMap:
-    positions: List[int]
+    debug: List[ImgDebug]
     scores: List[float]
+
+@dataclass
+class ImgDebugs:
+    img1: str
+    img2: str
+    debugs: List[ImgDebug]
 
 @dataclass
 class DistanceStruct:
     names: List[str]
     matrix: numpy.ndarray
     align: Optional[Alignment] = None
-    img_positions: Optional[List[List[Any]]] = None
+    img_debugs: Optional[List[ImgDebugs]] = None
 
 
 @dataclass

@@ -2,6 +2,7 @@ import numpy
 import tensorflow
 from tensorflow import Tensor
 from typing import Tuple, List
+from src.structs import ImgDebug
 from src.variants.ssim import SSIMVariant
 
 
@@ -22,16 +23,19 @@ class SSIMMultiScaleVariant(SSIMVariant):
         big_img: numpy.ndarray,
         s1: int, s2: int,
         step: int, window: int   
-    ) -> float:
+    ) -> Tuple[float, List[ImgDebug]]:
         max_score = 0
-        for i in range(0, big_img.shape[1]-window, step):
+        debugs = list()
+        for i in range(0, big_img.shape[1]-window+1, step):
             score = self._call_alg(
                 tensorflow.expand_dims(small_img, axis=0),
                 tensorflow.expand_dims(big_img[s1+i:s2+i, s1+i:s2+i], axis=0))[0]
             max_score = numpy.max((score, max_score))
-        return max_score
+            debugs.append(
+                ImgDebug(str(score), str(s1+i), str(s1+i), str(s2+i), str(s2+i), str(big_img.shape[1])))
+        return max_score, debugs
  
-    def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[int]]:
+    def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[ImgDebug]]:
         if image.shape[1] > other.shape[1]:
             max_img = image.numpy()[0]
             min_img = other.numpy()[0]
@@ -40,7 +44,6 @@ class SSIMMultiScaleVariant(SSIMVariant):
             max_img = other.numpy()[0]
         filter_size = min_img.shape[1]
         step = 1
-        score = self._dynamic_find_image_match(
+        return self._dynamic_find_image_match(
             min_img, max_img, 0, filter_size, step, filter_size)
-        return score, []
 

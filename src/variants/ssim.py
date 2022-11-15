@@ -8,7 +8,7 @@ from typing import List, Tuple
 from tensorflow import Tensor
 from src.context import RecursionContext
 from src.variants.variant import Variant
-from src.structs import DistanceStruct, ImgMap
+from src.structs import DistanceStruct, ImgMap, ImgDebug, ImgDebugs
 
 
 MAX_POSSIBLE_SCORE = 1.0
@@ -77,7 +77,7 @@ class SSIMVariant(Variant):
     def _find_best_col(self, min_img, max_img, mask_size, filter_size, step) -> ImgMap:
         last_line = 0
         scores = list()
-        positions = list()
+        debugs = list()
         start_score = 0
         for j in range(0, mask_size - filter_size, step):
             window = min(mask_size, j+filter_size)
@@ -89,13 +89,13 @@ class SSIMVariant(Variant):
                 start_score, last_line, step
             )
             scores.append(last_score)
-            positions.append(
-                (str(last_score), str(last_line+j), str(last_line),
+            debugs.append(
+                ImgDebug(str(last_score), str(last_line+j), str(last_line),
                 str(last_line+window), str(mask_size+last_line), str(max_img.shape[1])))
-        return ImgMap(positions=positions, scores=scores)
+        return ImgMap(debugs=debugs, scores=scores)
 
 
-    def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[int]]:
+    def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[ImgDebug]]:
         if image.shape[1] > other.shape[1]:
             max_img = image.numpy()[0]
             min_img = other.numpy()[0]
@@ -108,15 +108,15 @@ class SSIMVariant(Variant):
         step = filter_size // 2
         default_args = (mask_size, filter_size, step)
         img_map = self._find_best_col(min_img, max_img, *default_args)
-        return numpy.median(img_map.scores), img_map.positions
+        return numpy.median(img_map.scores), img_map.debugs
     
-    def _compare(self, img1: str, img2: str) -> Tuple[float, List[int]]:
+    def _compare(self, img1: str, img2: str) -> Tuple[float, List[ImgDebugs]]:
         img = self._read_image(img1)
         other = self._read_image(img2)
         with RecursionContext():
-            results, p = self._match_images(img, other)
-            positions = [img1, img2, p] if p else []
-        return results, positions     
+            result, debugs = self._match_images(img, other)
+            img_debugs = [ImgDebugs(img1, img2, debugs)] if debugs else []
+        return result, img_debugs     
 
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
@@ -131,15 +131,15 @@ class SSIMVariant(Variant):
         indexes = self._names
         df = pandas.DataFrame(index=indexes, columns=indexes)
         last_ids = list()
-        positions = list()
+        img_debugs = list()
         for idx, img1 in enumerate(files):
             results = list()
             idx1 = indexes[idx]
             futures = [self._executor.submit(self._compare, img1, img2) for img2 in files[idx:]]
             for future in futures:
-                r, p = future.result()
+                r, d = future.result()
                 results.append(r)
-                positions += p
+                img_debugs += d
             if last_ids:
                 df.loc[idx1, indexes[idx:]] = results
                 df.loc[idx1, last_ids] = df.loc[last_ids, idx1]
@@ -150,4 +150,4 @@ class SSIMVariant(Variant):
         return DistanceStruct(
             names=indexes,
             matrix=1.0-df.to_numpy(numpy.float64),
-            img_positions=positions)
+            img_debugs=img_debugs)

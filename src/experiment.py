@@ -1,10 +1,11 @@
 from __future__ import annotations
 import traceback
 import pandas
+import dataclasses
 from pathlib import Path
 from typing import Iterable
 from src.variants.variant import Variant
-from src.structs import TreeStruct
+from src.structs import TreeStruct, ImgDebug
 from biotite.sequence import phylo
 from matplotlib import pyplot
 from Bio import Phylo
@@ -37,15 +38,16 @@ class Experiment:
                 self._output_path / f"{tree_struct.name}.csv"
             )
 
-    def _save_img_positions(self, tree_struct: TreeStruct):
-        if tree_struct.distances.img_positions:
-            pos = "img1,img2,score,start_col,start_line,stop_col,stop_line,max_size\n"
-            for items in tree_struct.distances.img_positions:
-                img1, img2, positions = items
-                for position in positions:
-                    pos += f"{img1},{img2},{','.join(position)}\n"
+    def _save_img_debugs(self, tree_struct: TreeStruct):
+        if tree_struct.distances.img_debugs:
+            debuglist = ["img1", "img2"] + [field.name for field in dataclasses.fields(ImgDebug)]
+            debug = f"{','.join(debuglist)}\n"
+            for items in tree_struct.distances.img_debugs:
+                img1, img2, debugs = dataclasses.astuple(items)
+                for d in debugs:
+                    debug += f"{img1},{img2},{','.join(d)}\n"
             with open(self._output_path / f"{tree_struct.name}.map", "w") as f:
-                f.write(pos)
+                f.write(debug)
 
     def _save_align(self, tree_struct: TreeStruct):
         if tree_struct.distances.align:
@@ -85,7 +87,7 @@ class Experiment:
     def save(self):
         fig = pyplot.figure(figsize=(12.0, 12.0))
         for tree_struct in self._trees:
-            self._save_img_positions(tree_struct)
+            self._save_img_debugs(tree_struct)
             self._save_align(tree_struct)
             self._save_newick_tree(tree_struct)
             self._save_distance_matrix(tree_struct)
