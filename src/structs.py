@@ -16,7 +16,7 @@ class ImgDebug:
 
 @dataclass
 class ImgMap:
-    debug: List[ImgDebug]
+    debugs: List[ImgDebug]
     scores: List[float]
 
 @dataclass
