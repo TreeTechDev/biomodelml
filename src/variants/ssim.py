@@ -31,7 +31,7 @@ class SSIMVariant(Variant):
         self._alg_params = DEFAULT_PARAMS
         self._alg_params.update(alg_params)
         self.filter_size = self._alg_params["filter_size"]
-        self._executor = ThreadPoolExecutor(max_workers=cpu_count())
+        self._executor = ThreadPoolExecutor(max_workers=cpu_count()*10)
     
     def _call_alg(self, image: Tensor, other: Tensor) -> float:
         return tensorflow.image.ssim(
@@ -51,8 +51,8 @@ class SSIMVariant(Variant):
 
     def _greedy_find_image_match(
         self,
-        small_img: numpy.ndarray,
-        big_img: numpy.ndarray,
+        small_img: Tensor,
+        big_img: Tensor,
         c11: int, c12: int,
         l21: int, l22: int,
         c21: int, c22: int,
@@ -67,14 +67,13 @@ class SSIMVariant(Variant):
         if score == MAX_POSSIBLE_SCORE:
             return score, l21
         elif score > max_score:
-            return self._greedy_find_image_match(
-                small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, score, l21, step)
-        else:
-            return self._greedy_find_image_match(
-                small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, max_score, last_line, step)
+            max_score = score
+            last_line = l21
+        return self._greedy_find_image_match(
+            small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, max_score, last_line, step)
 
 
-    def _find_best_col(self, min_img, max_img, mask_size, filter_size, step) -> ImgMap:
+    def _find_best_col(self, min_img: Tensor, max_img: Tensor, mask_size: int, filter_size: int, step: int) -> ImgMap:
         last_line = 0
         scores = list()
         debugs = list()
@@ -97,11 +96,11 @@ class SSIMVariant(Variant):
 
     def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[ImgDebug]]:
         if image.shape[1] > other.shape[1]:
-            max_img = image.numpy()[0]
-            min_img = other.numpy()[0]
+            max_img = image[0]
+            min_img = other[0]
         else:
-            min_img = image.numpy()[0]
-            max_img = other.numpy()[0]
+            min_img = image[0]
+            max_img = other[0]
 
         mask_size = min_img.shape[1]
         filter_size = self.filter_size
