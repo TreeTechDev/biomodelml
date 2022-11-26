@@ -15,7 +15,6 @@ RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.s
     pip install -r requirements.txt &&\
     pip install -r requirements_test.txt &&\
     pip install pyqt5 lxml six &&\
-    pip install --upgrade ete3 &&\
     conda install -c bioconda -c etetoolkit slr clustalo paml phyml muscle iqtree cudnn cudatoolkit &&\
     ln -s /root/miniconda3/bin/ete3_apps/bin/Slr /root/miniconda3/bin/Slr &&\
     ln -s /root/miniconda3/bin/ete3_apps/bin/phyml /root/miniconda3/bin/phyml &&\
