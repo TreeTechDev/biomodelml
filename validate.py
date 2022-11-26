@@ -11,8 +11,8 @@ from ete3 import Tree
 
 #  all_channels = ("full", "red", "green", "blue", "red_green", "red_blue", "green_blue", "gray_r", "gray_g", "gray_b", "gray_max", "gray_mean")
 CHANNELS = ["full"]
-DEFAULT_ALG = "MultiScale Structural Similarity Index Measure"
-#DEFAULT_ALG = "Structural Similarity Index Measure"
+# DEFAULT_ALG = "MultiScale Structural Similarity Index Measure"
+DEFAULT_ALG = "Structural Similarity Index Measure"
 
 def read_and_compare(tree_path: str, dataset: str, channel: str = "full"):
     result_dict = {}

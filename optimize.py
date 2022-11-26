@@ -6,7 +6,7 @@ import optuna
 from ete3 import Tree
 from pathlib import Path
 from src.variants.control import ControlVariant
-from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+from src.variants.ssim_multiscale import SSIMVariant
 from src.experiment import Experiment
 
 SEED = 42
@@ -39,7 +39,7 @@ def objective(trial):
     fasta_file = data_path / f"{seq}.fasta.sanitized"
     experiment = Experiment(
         data_path,
-        SSIMMultiScaleVariant(
+        SSIMVariant(
             fasta_file,
             "N",
             data_path / "images" / seq / "full",
