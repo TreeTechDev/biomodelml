@@ -1,7 +1,8 @@
 FROM python:3.8.11-buster
 
 ENV CONDA_ALWAYS_YES="true" \
-    PATH="/root/miniconda3/bin:$PATH"
+    PATH="/root/miniconda3/bin:$PATH" \
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/miniconda3/lib/"
 
 ADD requirements.txt .
 ADD requirements_test.txt .

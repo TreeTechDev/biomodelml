@@ -4,7 +4,7 @@
 
 NPROCS = $(shell grep -c 'processor' /proc/cpuinfo)
 MAKEFLAGS += -j1
-APP_DIR="/app"
+APP_DIR=/app
 DATA_DIR=$(APP_DIR)/data
 FULL_ROOT_DIR=`pwd`
 FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
@@ -34,7 +34,7 @@ push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run $(DOCKER_FLAGS) --gpus all -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
 iqtree:
 	CMD="iqtree -s '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.fasta' -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw'" $(MAKE) run-docker
@@ -52,7 +52,7 @@ sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
 
 matches:
-	@CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
+	CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/images/" $(MAKE) run-docker
 
 tree-by-channel:
 	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.sanitized $(DATA_DIR)/trees/$(CHANNEL) $(TYPE) $(DATA_DIR)/images/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
