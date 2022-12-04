@@ -53,28 +53,29 @@ class SSIMVariant(Variant):
         self,
         small_img: Tensor,
         big_img: Tensor,
-        c11: int, c12: int,
-        l21: int, l22: int,
-        c21: int, c22: int,
+        l1: int, l2: int,
+        c1: int, c2: int,
         max_score: int, last_line: int, step: int
     ):
-        c12 = min(c12, small_img.shape[1])
-        c22 = min(c22, big_img.shape[1])
-        l22 = min(l22, big_img.shape[0])
+        c2 = min(c2, big_img.shape[1])
+        l2 = min(l2, big_img.shape[0])
+
+        if small_img.shape[0] > big_img[l1:l2, :].shape[0]:
+            return max_score, last_line
 
         score = self._call_alg(
-            tensorflow.expand_dims(small_img[:, c11:c12], axis=0),
-            tensorflow.expand_dims(big_img[l21:l22, c21:c22], axis=0))
+            tensorflow.expand_dims(small_img, axis=0),
+            tensorflow.expand_dims(big_img[l1:l2, c1:c2], axis=0))
         if score == MAX_POSSIBLE_SCORE:
-            return score, l21
+            return score, l1
         elif score > max_score:
             max_score = score
-            last_line = l21
-        if (c22 == big_img.shape[1]) or (l22 == big_img.shape[0]):
+            last_line = l1
+        if (c2 == big_img.shape[1]) or (l2 == big_img.shape[0]):
             return max_score, last_line
 
         return self._greedy_find_image_match(
-            small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, max_score, last_line, step)
+            small_img, big_img, l1+step, l2+step, c1+step, c2+step, max_score, last_line, step)
 
 
     def _find_best_col(self, min_img: Tensor, max_img: Tensor, mask_size: int, filter_size: int, step: int) -> ImgMap:
@@ -84,9 +85,9 @@ class SSIMVariant(Variant):
         start_score = 0
 
         for j in range(0, mask_size - filter_size, step):
+            min_col_limit = min(j+filter_size, min_img.shape[1])
             last_score, last_line = self._greedy_find_image_match(
-                min_img, max_img,
-                j, j+filter_size,
+                min_img[:, j:min_col_limit], max_img,
                 0, mask_size,
                 j, j+filter_size,
                 start_score, last_line, step
