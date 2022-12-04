@@ -58,9 +58,10 @@ class SSIMVariant(Variant):
         c21: int, c22: int,
         max_score: int, last_line: int, step: int
     ):
-        if (c22 > big_img.shape[1]) or (l22 > big_img.shape[0]):
-            return max_score, last_line
-        
+        c12 = min(c12, small_img.shape[1])
+        c22 = min(c22, big_img.shape[1])
+        l22 = min(l22, big_img.shape[0])
+
         score = self._call_alg(
             tensorflow.expand_dims(small_img[:, c11:c12], axis=0),
             tensorflow.expand_dims(big_img[l21:l22, c21:c22], axis=0))
@@ -69,6 +70,9 @@ class SSIMVariant(Variant):
         elif score > max_score:
             max_score = score
             last_line = l21
+        if (c22 == big_img.shape[1]) or (l22 == big_img.shape[0]):
+            return max_score, last_line
+
         return self._greedy_find_image_match(
             small_img, big_img, c11, c12, l21+step, l22+step, c21+step, c22+step, max_score, last_line, step)
 
@@ -78,19 +82,19 @@ class SSIMVariant(Variant):
         scores = list()
         debugs = list()
         start_score = 0
+
         for j in range(0, mask_size - filter_size, step):
-            window = min(mask_size, j+filter_size)
             last_score, last_line = self._greedy_find_image_match(
                 min_img, max_img,
-                j, window,
-                last_line, mask_size+last_line,
-                last_line+j, last_line+window,
+                j, j+filter_size,
+                0, mask_size,
+                j, j+filter_size,
                 start_score, last_line, step
             )
             scores.append(last_score)
             debugs.append(
                 ImgDebug(str(last_score), str(last_line+j), str(last_line),
-                str(last_line+window), str(mask_size+last_line), str(max_img.shape[1])))
+                str(last_line+filter_size+j), str(mask_size+last_line), str(max_img.shape[1])))
         return ImgMap(debugs=debugs, scores=scores)
 
 
