@@ -84,7 +84,7 @@ class SSIMVariant(Variant):
         debugs = list()
         start_score = 0
 
-        for j in range(0, mask_size - filter_size, step):
+        for j in range(0, mask_size - filter_size + 1, step):
             min_col_limit = min(j+filter_size, min_img.shape[1])
             last_score, last_line = self._greedy_find_image_match(
                 min_img[:, j:min_col_limit], max_img,
