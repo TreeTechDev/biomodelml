@@ -34,7 +34,8 @@ push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run $(DOCKER_FLAGS) --gpus all -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	sudo chown -R $(USER) $(FULL_ROOT_DIR)
 
 iqtree:
 	CMD="iqtree -s '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.fasta' -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw'" $(MAKE) run-docker
@@ -60,7 +61,7 @@ tree-by-channel:
 t_%:
 	CHANNEL="$*" $(MAKE) tree-by-channel
 
-tree: t_full t_red t_green t_blue t_red_green t_red_blue t_green_blue t_gray_r t_gray_b t_gray_g t_gray_max t_gray_mean
+tree: | t_full t_red t_green t_blue t_red_green t_red_blue t_green_blue t_gray_r t_gray_b t_gray_g t_gray_max t_gray_mean
 
 validate:
 	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
@@ -70,7 +71,7 @@ run: | sanitize matches tree validate
 e_%: 
 	SEQ="orthologs_$*" TYPE="N" $(MAKE) run
 
-experiments: e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
+experiments: | e_hemoglobin_beta e_myoglobin e_neuroglobin e_cytoglobin e_androglobin
 
 optimize: | sanitize matches
 	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
