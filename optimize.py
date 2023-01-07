@@ -36,7 +36,12 @@ def objective(trial):
         filter_sigma=trial.suggest_float("filter_sigma", 0.1, 1.5, step=0.1),
         filter_size=trial.suggest_int("filter_size", 3, 15)
     )
+    for previous_trial in trial.study.trials:
+        if previous_trial.state == optuna.trial.TrialState.COMPLETE and trial.params == previous_trial.params:
+            return previous_trial.value
+
     fasta_file = data_path / f"{seq}.fasta.sanitized"
+
     experiment = Experiment(
         data_path,
         SSIMMultiScaleVariant(
