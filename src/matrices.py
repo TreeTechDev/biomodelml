@@ -31,7 +31,7 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     #  red
     rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
     #  green
-    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1], max_window)
+    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1], max_window)[:, ::-1]
     #  blue    
     all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
     rows[all_lines, all_columns, 2] = max_window
