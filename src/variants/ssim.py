@@ -112,7 +112,7 @@ class SSIMVariant(Variant):
         step = filter_size // 2
         default_args = (mask_size, filter_size, step)
         img_map = self._find_best_col(min_img, max_img, *default_args)
-        return numpy.median(img_map.scores), img_map.debugs
+        return numpy.mean(img_map.scores), img_map.debugs
     
     def _compare(self, img1: str, img2: str) -> Tuple[float, List[ImgDebugs]]:
         img = self._read_image(img1)
