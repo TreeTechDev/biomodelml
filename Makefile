@@ -65,4 +65,5 @@ optimize: | sanitize matches
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
+	rm -rf $(FULL_DATA_DIR)/trees/full/orthologs_neuroglobin/*
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
