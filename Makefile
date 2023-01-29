@@ -34,7 +34,7 @@ push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run $(DOCKER_FLAGS) --gpus all -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
 sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
