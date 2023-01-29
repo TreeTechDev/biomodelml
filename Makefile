@@ -35,7 +35,6 @@ push:
 
 run-docker:
 	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
-	sudo chown -R $(USER) $(FULL_ROOT_DIR)
 
 sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
@@ -66,4 +65,5 @@ optimize: | sanitize matches
 
 try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
+	rm -rf $(FULL_DATA_DIR)/trees/full/orthologs_neuroglobin/*
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel

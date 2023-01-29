@@ -24,14 +24,14 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     len2 = len(seq2)
     len1 = len(seq1)
     seq1 = str(seq1)
-    seq2_reverse = str(seq2.reverse_complement())
+    seq2_complement = str(seq2.complement())
     seq2 = str(seq2)
     rows = numpy.zeros((len2, len1, 3))
 
     #  red
     rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
     #  green
-    rows[:, :, 1] = _weight_seqs(seq1, seq2_reverse, rows[:, :, 1], max_window)[:, ::-1]
+    rows[:, :, 1] = _weight_seqs(seq1, seq2_complement, rows[:, :, 1], max_window)
     #  blue    
     all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
     rows[all_lines, all_columns, 2] = max_window

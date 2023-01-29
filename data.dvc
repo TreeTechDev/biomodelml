@@ -1,11 +1,5 @@
 outs:
-<<<<<<< HEAD
 - md5: 9536b6fa66c32347a502aa04ee9b2a6a.dir
   size: 1316833037
   nfiles: 1971
-=======
-- md5: b60a8d209c8061e850a7e61476f45176.dir
-  size: 4212499680
-  nfiles: 3291
->>>>>>> branch-v2
   path: data
