@@ -13,5 +13,4 @@ class SSIMMultiScaleVariant(SSIMVariant):
         return tensorflow.image.ssim_multiscale(
                                 image,
                                 other,
-                                max_val=255, filter_size=11,
-                                filter_sigma=1.5, k1=0.01, k2=0.03)    
+                                **self._alg_params)    
