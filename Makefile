@@ -1,4 +1,4 @@
-.PHONY: clean build push sanitize matches tree run experiments
+.PHONY: clean build push sanitize matches tree run optimize experiments
 
 .SECONDARY:
 
@@ -65,6 +65,9 @@ tree:
 	CHANNEL="gray_mean" $(MAKE) tree-by-channel
 
 run: | sanitize matches tree
+
+optimize:
+	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
 
 experiments:
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) run
