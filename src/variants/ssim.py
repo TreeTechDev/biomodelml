@@ -29,7 +29,6 @@ class SSIMVariant(Variant):
         self._alg_params = DEFAULT_PARAMS
         self._alg_params.update(alg_params)
         self.filter_size = self._alg_params["filter_size"]
-        self._executor = ThreadPoolExecutor(max_workers=cpu_count()*10)
     
     def _call_alg(self, image: Tensor, other: Tensor) -> float:
         return tensorflow.image.ssim(
