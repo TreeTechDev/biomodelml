@@ -33,16 +33,17 @@ items = read_all_images([
     "data/images/orthologs_neuroglobin/full/"
 ])
 
-from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS, RecursionContext
+from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+from src.variants.ssim import DEFAULT_PARAMS, RecursionContext
 
 
-class SSIMSearch(SSIMVariant):
+class SSIMSearch(SSIMMultiScaleVariant):
     def __init__(self, **alg_params):
         self._alg_params = DEFAULT_PARAMS
         self._alg_params.update(alg_params)
         self.filter_size = self._alg_params["filter_size"]
 
-ssim = SSIMSearch(filter_size=6, filter_sigma=0.7)
+ssim = SSIMSearch(filter_size=9, filter_sigma=1.5)
 
 def _metric(img_a, img_b):
     with open(img_a, "rb") as f_a:
