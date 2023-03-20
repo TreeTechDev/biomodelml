@@ -1,4 +1,4 @@
-.PHONY: clean build test pull push sanitize matches tree run experiments optimize try
+.PHONY: clean build test pull push sanitize matches tree run experiments optimize try cluster
 
 .SECONDARY:
 
@@ -67,3 +67,6 @@ try:
 	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
 	rm -rf $(FULL_DATA_DIR)/trees/full/orthologs_neuroglobin/*
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
+
+cluster:
+	CMD="python clusterize.py $(SEQ)" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
