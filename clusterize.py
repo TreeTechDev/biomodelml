@@ -1,0 +1,112 @@
+import os
+import numpy
+import cv2
+import itertools
+import pickle
+from pathlib import Path
+from multiprocessing import Pool, cpu_count
+from typing import List
+from src.variants.ssim import SSIMVariant, RecursionContext
+from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+from src.variants.uqi import UQIVariant
+from src.variants.deep_search.variant import DeepSearchVariant
+
+folder = Path("/tmp")
+def read_image(img_folder: str, img_name: str):
+    im = cv2.imread(os.path.join(
+                    img_folder, img_name))
+    path = folder / img_folder / img_name
+    path.parent.mkdir(exist_ok=True, parents=True)
+    with open(path, "wb") as f:
+        numpy.save(f, cv2.cvtColor(im, cv2.COLOR_BGR2RGB))   # BGR -> RGB
+    return path
+
+def read_all_images(folders: List[str]):
+    img_dict = dict()
+    for folder in folders:
+        for f in os.listdir(folder):
+            img_dict[f"{folder.split('/')[-2]}_{f}"] = read_image(folder, f)
+    return img_dict
+
+items = read_all_images([
+    "data/images/orthologs_cytoglobin/full/",
+    "data/images/orthologs_hemoglobin_beta/full/",
+    "data/images/orthologs_myoglobin/full/",
+    "data/images/orthologs_neuroglobin/full/"
+])
+
+ssim = SSIMVariant()
+msssim = SSIMMultiScaleVariant()
+uqi = UQIVariant()
+ds = DeepSearchVariant()
+
+ALGORITMS = (ssim, msssim, uqi, ds)
+
+
+def _metric(img_a, img_b):
+    with RecursionContext():
+        results = dict()
+        for alg in ALGORITMS:
+            results[alg.__name__] = alg.calc_alg(img_a, img_b)
+        return results
+
+def _fit(item_a, item_b):
+    print(str(item_a),str(item_b))
+    return _metric(item_a, item_b)
+
+
+class AdaptedNearestNeighbors():
+    def __init__(self, algs, nproc=cpu_count()):
+        self._items = {}
+        self._algs = algs
+        self._i_and_d = {}
+        self._nproc = nproc
+
+    def fit(self, items: dict):
+        self._items = items
+        self._i_and_d = {a.__name__:{str(k): dict() for k in items.values()} for a in self._algs}
+        print(f"training for {len(items)} items and {len(self._algs)} algoritms")
+        item_by_item = list(itertools.combinations(items.values(), 2))
+        with Pool(self._nproc) as pool:
+            result = pool.starmap(
+                _fit,
+                item_by_item)
+        for i, (item_a, item_b) in enumerate(item_by_item):
+            item_a = str(item_a)
+            item_b = str(item_b)
+            for alg in self._algs:
+                alg_name = alg.__name__
+                self._i_and_d[alg_name][item_a][item_b] = self._i_and_d[alg_name][item_b][item_a] = result[i][alg_name]
+    
+
+ann = AdaptedNearestNeighbors(ALGORITMS)
+
+if not Path("data/backup_cluster.pkl").exists():
+    ann.fit(items)
+    with open("data/backup_cluster.pkl", 'wb') as f:
+        pickle.dump(ann, f)
+
+    with open("data/cluster_sim.txt", 'w') as f:
+        f.write(str(ann._i_and_d))
+
+with open("data/final_cluster.csv", "w") as f:
+    f.write("Algoritm, Name, Family, Right, Total\n")
+with open("data/cluster_sim.txt", "r") as f:
+    all_hash = eval(f.read())
+    for alg, results in all_hash.items():
+        for k, v in alg.items():
+            family = k.split("/")[-3]
+            name = k.split("/")[-1]
+            is_right = 0
+            total = 0
+            sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
+            for i, v in sorted_items:
+                if family == i.split("/")[-3]:
+                    total += 1
+            for i, v in sorted_items[:total]:
+                if family == i.split("/")[-3]:
+                    is_right += 1
+            result = f"{alg},{name},{family},{is_right},{total}\n"
+            print(result)
+            with open("data/final_cluster.csv", "a") as f:
+                f.write(result) 

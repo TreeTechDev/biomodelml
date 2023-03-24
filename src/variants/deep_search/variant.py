@@ -1,5 +1,6 @@
 import pandas
 import numpy
+from functools import lru_cache
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
 from src.variants.deep_search.feature_extractor import FeatureExtractor
@@ -14,6 +15,13 @@ class DeepSearchVariant(Variant):
         self._image_folder = image_folder
         self._input_shape = (2000, 2000, 3)
 
+    def calc_alg(self, img_name1: str, img_name2: str) -> float:
+        distance = self.build_matrix()
+        id1 = distance.names.index(img_name1)
+        id2 = distance.names.index(img_name2)
+        return distance.matrix[id1, id2]
+
+    @lru_cache(maxsize=None)
     def build_matrix(self) -> DistanceStruct:
         features = FeatureExtractor(self._input_shape)
         indexer = Indexer(self._image_folder, self._names, features)
