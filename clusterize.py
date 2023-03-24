@@ -4,7 +4,7 @@ import pickle
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from typing import List
-from src.variants.ssim import SSIMVariant
+from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS
 from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.variants.uqi import UQIVariant
 from src.variants.deep_search.variant import DeepSearchVariant
@@ -27,10 +27,13 @@ items = read_all_images([
 class SSIMSearch(SSIMVariant):
     def __init__(self):
         self._image_folder = ""
+        self._alg_params = DEFAULT_PARAMS
+
 
 class SSIMMultiScaleSearch(SSIMMultiScaleVariant):
     def __init__(self):
         self._image_folder = ""
+        self._alg_params = DEFAULT_PARAMS
 
 class UQISearch(UQIVariant):
     def __init__(self):
@@ -39,6 +42,7 @@ class UQISearch(UQIVariant):
 class DeepSearch(DeepSearchVariant):
     def __init__(self):
         self._image_folder = ""
+        self._input_shape = (2000, 2000, 3)
 
 ssim = SSIMSearch()
 msssim = SSIMMultiScaleSearch()
