@@ -1,31 +1,20 @@
 import os
-import numpy
-import cv2
 import itertools
 import pickle
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from typing import List
-from src.variants.ssim import SSIMVariant, RecursionContext
+from src.variants.ssim import SSIMVariant
 from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.variants.uqi import UQIVariant
 from src.variants.deep_search.variant import DeepSearchVariant
 
-folder = Path("/tmp")
-def read_image(img_folder: str, img_name: str):
-    im = cv2.imread(os.path.join(
-                    img_folder, img_name))
-    path = folder / img_folder / img_name
-    path.parent.mkdir(exist_ok=True, parents=True)
-    with open(path, "wb") as f:
-        numpy.save(f, cv2.cvtColor(im, cv2.COLOR_BGR2RGB))   # BGR -> RGB
-    return path
 
 def read_all_images(folders: List[str]):
     img_dict = dict()
     for folder in folders:
         for f in os.listdir(folder):
-            img_dict[f"{folder.split('/')[-2]}_{f}"] = read_image(folder, f)
+            img_dict[f"{folder.split('/')[-2]}_{f}"] = os.path.join(folder, f)
     return img_dict
 
 items = read_all_images([
@@ -35,20 +24,35 @@ items = read_all_images([
     "data/images/orthologs_neuroglobin/full/"
 ])
 
-ssim = SSIMVariant()
-msssim = SSIMMultiScaleVariant()
-uqi = UQIVariant()
-ds = DeepSearchVariant()
+class SSIMSearch(SSIMVariant):
+    def __init__(self):
+        self._image_folder = ""
+
+class SSIMMultiScaleSearch(SSIMMultiScaleVariant):
+    def __init__(self):
+        self._image_folder = ""
+
+class UQISearch(UQIVariant):
+    def __init__(self):
+        self._image_folder = ""
+
+class DeepSearch(DeepSearchVariant):
+    def __init__(self):
+        self._image_folder = ""
+
+ssim = SSIMSearch()
+msssim = SSIMMultiScaleSearch()
+uqi = UQISearch()
+ds = DeepSearch()
 
 ALGORITMS = (ssim, msssim, uqi, ds)
 
 
 def _metric(img_a, img_b):
-    with RecursionContext():
-        results = dict()
-        for alg in ALGORITMS:
-            results[alg.__name__] = alg.calc_alg(img_a, img_b)
-        return results
+    results = dict()
+    for alg in ALGORITMS:
+        results[alg.__name__] = alg.calc_alg(img_a, img_b)
+    return results
 
 def _fit(item_a, item_b):
     print(str(item_a),str(item_b))
