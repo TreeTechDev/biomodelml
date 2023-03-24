@@ -2,7 +2,6 @@ import os
 import pandas
 import numpy
 import tensorflow
-import cv2
 from tensorflow import Tensor
 from typing import Tuple
 from src.variants.variant import Variant

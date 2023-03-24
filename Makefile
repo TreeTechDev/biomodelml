@@ -26,7 +26,7 @@ push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run -it -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
 iqtree:
 	CMD="iqtree -s '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.fasta' -t '$(DATA_DIR)/trees/orthologs_cytoglobin/Control with Clustal Omega.nw'" $(MAKE) run-docker
@@ -77,5 +77,9 @@ experiments:
 	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
 	SEQ="indelible" TYPE="N" $(MAKE) run
 
-cluster: sanitize matches
+cluster:
+	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) matches
 	CMD="python clusterize.py" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
