@@ -28,21 +28,25 @@ class SSIMSearch(SSIMVariant):
     def __init__(self):
         self._image_folder = ""
         self._alg_params = DEFAULT_PARAMS
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
 
 class SSIMMultiScaleSearch(SSIMMultiScaleVariant):
     def __init__(self):
         self._image_folder = ""
         self._alg_params = DEFAULT_PARAMS
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
 class UQISearch(UQIVariant):
     def __init__(self):
         self._image_folder = ""
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
 class DeepSearch(DeepSearchVariant):
     def __init__(self):
         self._image_folder = ""
         self._input_shape = (2000, 2000, 3)
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
 ssim = SSIMSearch()
 msssim = SSIMMultiScaleSearch()
