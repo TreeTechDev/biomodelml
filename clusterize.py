@@ -7,7 +7,6 @@ from typing import List
 from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS
 from src.variants.ssim_multiscale import SSIMMultiScaleVariant
 from src.variants.uqi import UQIVariant
-from src.variants.deep_search.variant import DeepSearchVariant
 
 
 def read_all_images(folders: List[str]):
@@ -42,18 +41,11 @@ class UQISearch(UQIVariant):
         self._image_folder = ""
         self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
-class DeepSearch(DeepSearchVariant):
-    def __init__(self):
-        self._image_folder = ""
-        self._input_shape = (2000, 2000, 3)
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
-
 ssim = SSIMSearch()
 msssim = SSIMMultiScaleSearch()
 uqi = UQISearch()
-ds = DeepSearch()
 
-ALGORITMS = (ssim, msssim, uqi, ds)
+ALGORITMS = (ssim, msssim, uqi)
 
 
 def _metric(img_a, img_b):
