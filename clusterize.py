@@ -51,7 +51,7 @@ ALGORITMS = (ssim, msssim, uqi, ds)
 def _metric(img_a, img_b):
     results = dict()
     for alg in ALGORITMS:
-        results[alg.__name__] = alg.calc_alg(img_a, img_b)
+        results[alg.name] = alg.calc_alg(img_a, img_b)
     return results
 
 def _fit(item_a, item_b):
@@ -68,7 +68,7 @@ class AdaptedNearestNeighbors():
 
     def fit(self, items: dict):
         self._items = items
-        self._i_and_d = {a.__name__:{str(k): dict() for k in items.values()} for a in self._algs}
+        self._i_and_d = {a.name:{str(k): dict() for k in items.values()} for a in self._algs}
         print(f"training for {len(items)} items and {len(self._algs)} algoritms")
         item_by_item = list(itertools.combinations(items.values(), 2))
         with Pool(self._nproc) as pool:
@@ -79,8 +79,7 @@ class AdaptedNearestNeighbors():
             item_a = str(item_a)
             item_b = str(item_b)
             for alg in self._algs:
-                alg_name = alg.__name__
-                self._i_and_d[alg_name][item_a][item_b] = self._i_and_d[alg_name][item_b][item_a] = result[i][alg_name]
+                self._i_and_d[alg.name][item_a][item_b] = self._i_and_d[alg.name][item_b][item_a] = result[i][alg.name]
     
 
 ann = AdaptedNearestNeighbors(ALGORITMS)
