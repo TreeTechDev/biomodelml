@@ -72,6 +72,13 @@ class SSIMVariant(Variant):
     #         tensorflow.expand_dims(max_cropped, axis=0)
     #     )
 
+    def calc_alg(self, img_name1: str, img_name2: str) -> float:
+        img, other = self._upscale_images(
+                            self._read_image(img_name1),
+                            self._read_image(img_name2)
+                        )
+        return self._call_alg(img, other)       
+
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
         indexes = {".".join(img.split('.')[:-1]): img.split('.')[-1] for img in files}
@@ -89,12 +96,8 @@ class SSIMVariant(Variant):
             idx1 = indexes[idx]
             results = list()
             for img2 in files[idx:]:
-                img, other = self._upscale_images(
-                    self._read_image(img1),
-                    self._read_image(img2)
-                )
                 results.append(
-                    self._call_alg(img, other)
+                    self.calc_alg(img1, img2)
                 )
             if last_ids:
                 df.loc[idx1, indexes[idx:]] = results

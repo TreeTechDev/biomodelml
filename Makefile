@@ -1,4 +1,4 @@
-.PHONY: clean build push sanitize matches tree run optimize experiments
+.PHONY: clean build push sanitize matches tree run optimize experiments cluster
 
 .SECONDARY:
 
@@ -76,3 +76,6 @@ experiments:
 	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) run
 	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) run
 	SEQ="indelible" TYPE="N" $(MAKE) run
+
+cluster: sanitize matches
+	CMD="python clusterize.py" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker

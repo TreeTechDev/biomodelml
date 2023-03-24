@@ -32,28 +32,28 @@ class UQIVariant(Variant):
         )
         return result
 
-    def _upscale_with_border(self, image: numpy.ndarray, other: numpy.ndarray) -> Tuple[numpy.ndarray]:
-        if image.shape[0] < other.shape[0]:
-            min_image = image
-            max_image = other
-        elif image.shape[0] > other.shape[0]:
-            min_image = other
-            max_image = image
-        else:
-            return (image, other)
-        diff_shape = max_image.shape[0] - min_image.shape[0]
-        if diff_shape % 2 > 0:
-            diff_shape += 1
-            max_image = cv2.resize(
-                max_image,
-                dsize=(max_image.shape[0]+1, max_image.shape[1]+1),
-                interpolation=cv2.INTER_CUBIC)
-        new_image = numpy.zeros(max_image.shape)
-        pad = diff_shape // 2
-        new_image[pad:-pad, pad:-pad] = min_image
-        return (max_image, new_image)
+    # def _upscale_with_border(self, image: numpy.ndarray, other: numpy.ndarray) -> Tuple[numpy.ndarray]:
+    #     if image.shape[0] < other.shape[0]:
+    #         min_image = image
+    #         max_image = other
+    #     elif image.shape[0] > other.shape[0]:
+    #         min_image = other
+    #         max_image = image
+    #     else:
+    #         return (image, other)
+    #     diff_shape = max_image.shape[0] - min_image.shape[0]
+    #     if diff_shape % 2 > 0:
+    #         diff_shape += 1
+    #         max_image = cv2.resize(
+    #             max_image,
+    #             dsize=(max_image.shape[0]+1, max_image.shape[1]+1),
+    #             interpolation=cv2.INTER_CUBIC)
+    #     new_image = numpy.zeros(max_image.shape)
+    #     pad = diff_shape // 2
+    #     new_image[pad:-pad, pad:-pad] = min_image
+    #     return (max_image, new_image)
 
-    def _calc_uqi(self, img_name1: str, img_name2: str) -> float:
+    def calc_alg(self, img_name1: str, img_name2: str) -> float:
         return 1.0 - abs(uqi(
             *self._upscale_images(
                 self._read_image(img_name1), self._read_image(img_name2))))
@@ -77,7 +77,7 @@ class UQIVariant(Variant):
             idx1 = img1.split('.')[0]
             with Pool(threads) as pool:
                 result = pool.starmap(
-                    self._calc_uqi,
+                    self.calc_alg,
                     [(img1, img2) for img2 in files[idx:]]
                 )
             if last_ids:
