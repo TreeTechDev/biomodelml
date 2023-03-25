@@ -79,7 +79,6 @@ experiments:
 
 cluster:
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
-	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) matches
