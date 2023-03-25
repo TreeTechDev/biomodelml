@@ -17,6 +17,7 @@ def read_all_images(folders: List[str]):
     return img_dict
 
 items = read_all_images([
+    "data/images/orthologs_androglobin/full/",
     "data/images/orthologs_cytoglobin/full/",
     "data/images/orthologs_hemoglobin_beta/full/",
     "data/images/orthologs_myoglobin/full/",
@@ -89,12 +90,12 @@ if not Path("data/backup_cluster.pkl").exists():
     with open("data/backup_cluster.pkl", 'wb') as f:
         pickle.dump(ann, f)
 
-    with open("data/cluster_sim.pkl", 'w') as f:
+    with open("data/cluster_sim.pkl", 'wb') as f:
         pickle.dump(ann._i_and_d, f)
 
 with open("data/final_cluster.csv", "w") as f:
     f.write("Algoritm, Name, Family, Right, Total\n")
-with open("data/cluster_sim.pkl", "r") as f:
+with open("data/cluster_sim.pkl", "rb") as f:
     all_hash = pickle.read(f)
     for alg, results in all_hash.items():
         for k, v in alg.items():
