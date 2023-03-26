@@ -95,7 +95,7 @@ if not Path("data/backup_cluster.pkl").exists():
 with open("data/final_cluster.csv", "w") as f:
     f.write("Algoritm, Name, Family, Right, Total\n")
 with open("data/cluster_sim.pkl", "rb") as f:
-    all_hash = pickle.read(f)
+    all_hash = pickle.load(f)
     for alg, results in all_hash.items():
         for k, v in alg.items():
             family = k.split("/")[-3]
