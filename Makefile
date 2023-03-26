@@ -78,6 +78,7 @@ experiments:
 	SEQ="indelible" TYPE="N" $(MAKE) run
 
 cluster:
+	SEQ="indelible" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
