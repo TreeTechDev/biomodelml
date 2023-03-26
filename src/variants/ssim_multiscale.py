@@ -12,4 +12,4 @@ class SSIMMultiScaleVariant(SSIMVariant):
         return tensorflow.image.ssim_multiscale(
                                 image,
                                 other,
-                                **self._alg_params).numpy()
+                                **self._alg_params)[0].numpy()
