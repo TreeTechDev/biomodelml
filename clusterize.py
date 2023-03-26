@@ -98,7 +98,7 @@ with open("data/final_cluster.csv", "w") as f:
 with open("data/cluster_sim.pkl", "rb") as f:
     all_hash = pickle.load(f)
     for alg, results in all_hash.items():
-        for k, v in alg.items():
+        for k, v in results.items():
             family = k.split("/")[-3]
             name = k.split("/")[-1]
             is_right = 0
