@@ -22,9 +22,11 @@ There are only significant changes to the Dockerfile between v1 and v2, so no ne
 
     dvc pull
 
-The script to get the datasets used by Globinas is executed by:
+The script to get the datasets used by Globins is executed by:
 
     ./get_globins.sh
+
+For [Indelible](http://abacus.gene.ucl.ac.uk/software/indelible/) dataset, you need to install the software and run it with *indelible.conf* file.
 
 ## Changes between Versions of Algorithms
 
@@ -103,4 +105,17 @@ Each optimization runs for each fasta file and can be one of these, where SEQ is
     SEQ="orthologs_hemoglobin_beta" TYPE="N" make optimize 
     SEQ="orthologs_myoglobin" TYPE="N" make optimize
     SEQ="orthologs_neuroglobin" TYPE="N" make optimize
-    SEQ="orthologs_cytoglobin" TYPE="N" make optimize 
+    SEQ="orthologs_cytoglobin" TYPE="N" make optimize
+
+## Analysing Experiments
+
+There are analysis where you can run after the experiments on each version branch or you can see all of them in *main* branch under *notebooks/results/* folder. They are Jupyter Notebooks with analysis. If you want to edit all of them you need first to run experiments with:
+
+    git checkout branch-X  # where X is the version
+    make build  # just if change from v1 to others
+    dvc pull
+    make clean cluster experiments
+
+And now run Jupyter Notebooks inside virtualenv with:
+
+    jupyter notebook
