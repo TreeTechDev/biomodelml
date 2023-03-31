@@ -7,6 +7,7 @@ import pickle
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from typing import List
+from collections import OrderedDict
 
 folder = Path("/tmp")
 def read_image(img_folder: str, img_name: str):
@@ -26,7 +27,6 @@ def read_all_images(folders: List[str]):
     return img_dict
 
 items = read_all_images([
-    "data/images/orthologs_androglobin/full/",
     "data/images/orthologs_cytoglobin/full/",
     "data/images/orthologs_hemoglobin_beta/full/",
     "data/images/orthologs_myoglobin/full/",
@@ -42,7 +42,7 @@ class SSIMSearch(SSIMVariant):
         self._alg_params.update(alg_params)
         self.filter_size = self._alg_params["filter_size"]
 
-ssim = SSIMSearch(filter_size=7, filter_sigma=0.7)
+ssim = SSIMSearch(filter_size=6, filter_sigma=0.7)
 
 def _metric(img_a, img_b):
     with open(img_a, "rb") as f_a:
@@ -81,32 +81,53 @@ class AdaptedNearestNeighbors():
         if self._i_and_d.get(item):
             close_item = item
         else:  
-            closest = 1
+            closest = 0
             close_item = None
             for i in self._items:
                 prediction = _metric(self._items[i], item)
-                if prediction <= closest:
+                if prediction >= closest:
                     closest = prediction
                     close_item = str(self._items[i])
-                    if closest == 0:
+                    if closest == 1:
                         break
-        return dict(sorted(self._i_and_d[close_item].items(), key=lambda item: item[1]))
+        return OrderedDict(sorted(self._i_and_d[close_item].items(), key=lambda item: item[1]), reverse=True)
 
 ann = AdaptedNearestNeighbors()
 
-if Path("backup.pkl").exists():
-    with open("backup.pkl", 'rb') as f:
-        ann = pickle.load(f)
-else:
+if not Path("data/backup_cluster.pkl").exists():
     ann.fit(items)
-    with open("backup.pkl", 'wb') as f:
+    with open("data/backup_cluster.pkl", 'wb') as f:
         pickle.dump(ann, f)
 
-    with open("p.txt", 'w') as f:
+    with open("data/cluster_sim.txt", 'w') as f:
         f.write(str(ann._i_and_d))
 
-r = ann.predict(read_image("data/images/orthologs_hemoglobin_beta/full/", "Carlito_syrichta_ENSTSYP00000007411_Csyr.png"))
+with open("data/final_cluster.csv", "w") as f:
+    f.write("Name, Family, Right, Total\n")
+with open("data/cluster_sim.txt", "r") as f:
+    all_hash = eval(f.read())
+    for k, v in all_hash.items():
+        family = k.split("/")[-3]
+        name = k.split("/")[-1]
+        is_right = 0
+        total = 0
+        sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
+        for i, v in sorted_items:
+            if family == i.split("/")[-3]:
+                total += 1
+        for i, v in sorted_items[:total]:
+            if family == i.split("/")[-3]:
+                is_right += 1
+        result = f"{name},{family},{is_right},{total}\n"
+        print(result)
+        with open("data/final_cluster.csv", "a") as f:
+            f.write(result) 
+#r = ann.predict(read_image("data/images/orthologs_neuroglobin/full/", "prolemur_simus_ENSPSMG00000011006.png"))
 
-print(r)
-with open("r.txt", 'w') as f:
-    f.write(str(r))
+#c=0
+#for i, v in sorted(r.items(), key=lambda item: item[1]):
+#    c+=1
+#    print(i, v)
+#    if c > 20: break
+#with open("r.txt", 'w') as f:
+#    f.write(str(r))
