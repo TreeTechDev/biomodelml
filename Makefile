@@ -17,6 +17,9 @@ clean:
 	touch $(FULL_DATA_DIR)/.keep
 	touch $(FULL_DATA_DIR)/images/.keep
 	touch $(FULL_DATA_DIR)/trees/.keep
+	rm $(FULL_DATA_DIR)/*.pkl
+	rm $(FULL_DATA_DIR)/final_cluster.csv
+	rm $(FULL_DATA_DIR)/*.db
 
 build:
 	docker build . -t $(IMG_NAME)
