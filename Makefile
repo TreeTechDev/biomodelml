@@ -72,4 +72,8 @@ try:
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
 
 cluster:
+	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) matches
 	CMD="python clusterize.py $(SEQ)" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
