@@ -85,13 +85,13 @@ This command generate results for dendrograms analysis and similarity metrics by
 
 ### Homologues Search and Clusterize 
 
-This command generate results using algoritms to search into multiple sequences for each sequence looking for most similar sequences as homologues:
+This command generate results using algorithms to search into multiple sequences for each sequence looking for most similar sequences as homologues:
 
     make clean cluster
 
-## Algoritms Optimization
+## Algorithms Optimization
 
-There are only algoritms of versions v2-v3, v3, v4 and v5 that were implemented bayesian optimization in its hyperparameters. Before run the optimizations you should run:
+There are only algorithms of versions v2-v3, v3, v4 and v5 that were implemented bayesian optimization in its hyperparameters. Before run the optimizations you should run:
 
     git checkout branch-X  # where X is the version
     make build  # just if change from v1 to others
