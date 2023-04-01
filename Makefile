@@ -81,6 +81,7 @@ experiments:
 	SEQ="indelible" TYPE="N" $(MAKE) run
 
 cluster:
+	CMD="bash run_blast.sh 11" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches
