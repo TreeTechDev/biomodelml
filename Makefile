@@ -72,6 +72,7 @@ try:
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
 
 cluster:
+	CMD="bash run_blast.sh 6" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches
