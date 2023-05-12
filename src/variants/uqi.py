@@ -54,9 +54,9 @@ class UQIVariant(Variant):
     #     return (max_image, new_image)
 
     def calc_alg(self, img_name1: str, img_name2: str) -> float:
-        return 1.0 - abs(uqi(
+        return abs(uqi(
             *self._upscale_images(
-                self._read_image(img_name1), self._read_image(img_name2))))
+                self._read_image(img_name1), self._read_image(img_name2)), 11))
 
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
@@ -87,4 +87,4 @@ class UQIVariant(Variant):
                 df.loc[idx1, :] = result
             last_ids.append(idx1)
         return DistanceStruct(
-            names=indexes, matrix=df.to_numpy(numpy.float64))
+            names=indexes, matrix=1.0-df.to_numpy(numpy.float64))
