@@ -27,6 +27,7 @@ def read_all_images(folders: List[str]):
     return img_dict
 
 items = read_all_images([
+    "data/images/orthologs_androglobin/full/",
     "data/images/orthologs_cytoglobin/full/",
     "data/images/orthologs_hemoglobin_beta/full/",
     "data/images/orthologs_myoglobin/full/",
