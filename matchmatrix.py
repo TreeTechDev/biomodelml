@@ -7,7 +7,17 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 
 
-def build_matrix(seq1: Seq, seq2: Seq, max_window: int, min_window: int):
+def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
+    indexes = dict()
+    for line, letter in enumerate(seq2):
+        if letter not in indexes:
+            indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
+        idx = indexes[letter]
+        rows[line, idx] = max_window
+    return rows
+
+
+def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     """
     Primeira sequência é a coluna e segunda é a linha.
     Retorna a soma de todas as janelas em 2 dimensões, na normal e na reversa.
@@ -16,22 +26,18 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int, min_window: int):
     """
     len2 = len(seq2)
     len1 = len(seq1)
-    seq1 = str(seq1.upper())
-    seq2_reverse = str(seq2.upper().reverse_complement())
-    seq2_invert = str(seq2.upper())[::-1]
-    seq2 = str(seq2.upper())
-    rows = numpy.zeros((len2, len1, 3))
+    seq1 = str(seq1)
+    seq2_complement = str(seq2.complement())
+    seq2 = str(seq2)
+    rows = numpy.zeros((len2, len1, 3), numpy.bool8)
 
-    for w in range(min_window, max_window+1):
-        for b in range(0, len2-w+1):
-            for r in range(0, len1-w+1):
-                if seq1[r:r+w] == seq2[b:b+w]:
-                    numpy.fill_diagonal(rows[b:b+w, r:r+w, 0], w)
-                if seq1[r:r+w] == seq2_reverse[b:b+w]:
-                    numpy.fill_diagonal(rows[:, ::-1][b:b+w, r:r+w, 1], w)
-                if seq1[r:r+w] == seq2_invert[b:b+w]:
-                    numpy.fill_diagonal(rows[:, ::-1][b:b+w, r:r+w, 2], w)
-
+    #  red
+    rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
+    #  green
+    rows[:, :, 1] = _weight_seqs(seq1, seq2_complement, rows[:, :, 1], max_window)
+    #  blue    
+    all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
+    rows[all_lines, all_columns, 2] = max_window
     return rows
 
 
@@ -157,8 +163,7 @@ def save_image_by_matrices(
 
 def main(fasta_file: str, output_path: str):
 
-    max_window = 20
-    min_window = 1
+    max_window = 1
     procs = cpu_count()
 
     with open(fasta_file, "r") as handle:
@@ -171,8 +176,7 @@ def main(fasta_file: str, output_path: str):
         for s in sequences:
             if not os.path.exists(os.path.join(output_path, f"{s.description}.png")):
                 to_run.append(
-                    (s.description, s.description, s.seq, s.seq, max_window,
-                     min_window, output_path)
+                    (s.description, s.description, s.seq, s.seq, max_window, output_path)
                 )
         print(f"starting to build image matrix for {len(to_run)} sequences")
 
