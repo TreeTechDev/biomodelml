@@ -43,9 +43,9 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
 
 def _produce_results_images(
     matrix: numpy.ndarray, output_path: str,
-    filename: str, max_window: int, min_window: int
+    filename: str, max_window: int
 ):
-    new_name = f"{max_window}_{min_window}_{filename}"
+    new_name = f"{max_window}_{filename}"
     matrix = numpy.invert(matrix)
 
     os.makedirs(os.path.join(output_path, "result"), exist_ok=True)
@@ -150,15 +150,13 @@ def _produce_channel_images(**kwargs):
 
 def save_image_by_matrices(
         name1: str, name2: str, seq1: Seq, seq2: Seq,
-        max_window: int, min_window: int, output_path: str):
-    matrix = build_matrix(seq1, seq2, max_window, min_window)
-    max_rgb = 255
+        max_window: int, output_path: str):
+    matrix = build_matrix(seq1, seq2, max_window)
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
-    color_matrix = (matrix*max_rgb/max_window).astype(numpy.uint8)
     _produce_channel_images(
-        matrix=color_matrix, output_path=output_path, filename=filename)
+        matrix=matrix, output_path=output_path, filename=filename)
     _produce_results_images(
-        color_matrix, output_path, filename, max_window, min_window)
+        matrix, output_path, filename, max_window)
 
 
 def main(fasta_file: str, output_path: str):
