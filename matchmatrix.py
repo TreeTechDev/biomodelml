@@ -1,8 +1,8 @@
 import os
 import sys
+import numpy
 from multiprocessing import Pool, cpu_count
 from matplotlib import pyplot
-import numpy
 from Bio.Seq import Seq
 from Bio import SeqIO
 
@@ -10,7 +10,9 @@ from Bio import SeqIO
 def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
     indexes = dict()
     for line, letter in enumerate(seq2):
-        if letter not in indexes:
+        if letter == "N":
+            continue
+        elif letter not in indexes:
             indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
         rows[line, idx] = max_window
@@ -29,7 +31,7 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
     seq1 = str(seq1)
     seq2_complement = str(seq2.complement())
     seq2 = str(seq2)
-    rows = numpy.zeros((len2, len1, 3), numpy.bool8)
+    rows = numpy.zeros((len2, len1, 3), numpy.int8)
 
     #  red
     rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
@@ -161,7 +163,7 @@ def save_image_by_matrices(
 
 def main(fasta_file: str, output_path: str):
 
-    max_window = 1
+    max_window = 255
     procs = cpu_count()
 
     with open(fasta_file, "r") as handle:
