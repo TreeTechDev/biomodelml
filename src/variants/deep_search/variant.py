@@ -13,8 +13,10 @@ class DeepSearchVariant(Variant):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
         self._input_shape = (2000, 2000, 3)
+        self._sequence_type = sequence_type
 
     def build_matrix(self) -> DistanceStruct:
+        if self._sequence_type == "P": raise IOError("Variant not working with Proteins")
         features = FeatureExtractor(self._input_shape)
         indexer = Indexer(self._image_folder, self._names, features)
         names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in indexer.image_list]

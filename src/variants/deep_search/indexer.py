@@ -40,6 +40,6 @@ class Indexer:
     
     def search_by_item(self, item: int) -> List[float]:
         if not self._index:
-            raise IOError("Run build first")
+            raise Exception("Run build first")
         return self._index.get_nns_by_item(
             item, -1, search_k=-1, include_distances=True)

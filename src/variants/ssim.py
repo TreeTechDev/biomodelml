@@ -30,6 +30,7 @@ class SSIMVariant(Variant):
         self._image_folder = image_folder
         self._alg_params = DEFAULT_PARAMS
         self._alg_params.update(alg_params)
+        self._alg_params["filter_size"] = self._alg_params["filter_size"] // 3 if sequence_type == "P" else self._alg_params["filter_size"] 
         self.filter_size = self._alg_params["filter_size"]
         self._executor = ThreadPoolExecutor(max_workers=cpu_count()*10)
     

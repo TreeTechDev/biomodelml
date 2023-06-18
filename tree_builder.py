@@ -32,9 +32,10 @@ if __name__ == "__main__":
     output_path = sys.argv[2]
     sequence_type = sys.argv[3] if sys.argv[3] in ["P", "N"] else None
     output_path = os.path.join(output_path, fasta_file.split(".")[0].split("/")[-1])
-    os.makedirs(output_path, exist_ok=True)
     try:
         image_path = sys.argv[4]
+        if not os.path.exists(image_path): raise IOError("Image path not exists")
     except IndexError:
         image_path = None
+    os.makedirs(output_path, exist_ok=True)
     main(fasta_file, output_path, sequence_type, image_path)

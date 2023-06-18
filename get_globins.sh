@@ -11,7 +11,7 @@ grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"species\":\"\S+?\"" |
 wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homology/id/ENSG00000118492?type=orthologues;sequence=cdna;aligned=0;target_species=Nomascus_leucogenys'
 grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"species\":\"\S+?\"" | grep -P -o "\w+_\w+" | sed 's/^/>/' | sed 's/$/_/' | perl -pe 'chomp' >> orthologs_androglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"id\":\"\w+\d+?\"" | grep -P -o "E\w+\d+" >> orthologs_androglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"seq\":\"\S+?\"" | grep -P -o "[A-Z]+" >> orthologs_androglobin.fasta; rm -rf *orthologues*
 
-wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homology/id/ENSG00000118492?type=orthologues;sequence=cdna;aligned=0;target_species=Saimiri_boliviensis'
+wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homology/id/ENSG00000118492?type=orthologues;sequence=cdna;aligned=0;target_species=Homo_sapiens'
 grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"species\":\"\S+?\"" | grep -P -o "\w+_\w+" | sed 's/^/>/' | sed 's/$/_/' | perl -pe 'chomp' >> orthologs_androglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"id\":\"\w+\d+?\"" | grep -P -o "E\w+\d+" >> orthologs_androglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"seq\":\"\S+?\"" | grep -P -o "[A-Z]+" >> orthologs_androglobin.fasta; rm -rf *orthologues*
 
 wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homology/id/ENSG00000118492?type=orthologues;sequence=cdna;aligned=0;target_species=Prolemur_simus'
@@ -99,7 +99,7 @@ wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homol
 grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"species\":\"\S+?\"" | grep -P -o "\w+_\w+" | sed 's/^/>/' | sed 's/$/_/' | perl -pe 'chomp' >> orthologs_cytoglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"id\":\"\w+\d+?\"" | grep -P -o "E\w+\d+" >> orthologs_cytoglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"seq\":\"\S+?\"" | grep -P -o "[A-Z]+" >> orthologs_cytoglobin.fasta; rm -rf *orthologues*
 
 
-< orthologs_myoglobin.fasta
+> orthologs_myoglobin.fasta
 
 wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homology/id/ENSG00000198125?type=orthologues;sequence=cdna;aligned=0;target_species=Chlorocebus_sabaeus'
 grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"species\":\"\S+?\"" | grep -P -o "\w+_\w+" | sed 's/^/>/' | sed 's/$/_/' | perl -pe 'chomp' >> orthologs_myoglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"id\":\"\w+\d+?\"" | grep -P -o "E\w+\d+" >> orthologs_myoglobin.fasta ; grep -o -P "\"target\".*?\}" *orthologues* | grep -o -P "\"seq\":\"\S+?\"" | grep -P -o "[A-Z]+" >> orthologs_myoglobin.fasta; rm -rf *orthologues*

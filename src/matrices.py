@@ -2,7 +2,19 @@ import os
 import numpy
 from matplotlib import pyplot
 from Bio.Seq import Seq
+from biotite.sequence.align import SubstitutionMatrix
 
+
+def _weight_ptns(seq1: Seq, seq2: Seq, max_window: int):
+    subst_matrix = SubstitutionMatrix.dict_from_db("BLOSUM62")
+    min_subst = min(subst_matrix.values())
+    max_subst = max(subst_matrix.values()) + abs(min_subst)
+
+    rows = numpy.zeros((len(seq2), len(seq1)), numpy.uint8)
+    for line, letter1 in enumerate(seq2):
+        for col, letter2 in enumerate(seq1):
+            rows[line, col] = round((subst_matrix[letter1, letter2]+abs(min_subst))*max_window/max_subst)
+    return rows
 
 def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
     indexes = dict()
@@ -14,51 +26,41 @@ def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
     return rows
 
 
-def build_matrix(seq1: Seq, seq2: Seq, max_window: int):
+def build_matrix(seq1: Seq, seq2: Seq, max_window: int, seq_type: str):
     """
     Primeira sequência é a coluna e segunda é a linha.
     Retorna a soma de todas as janelas em 2 dimensões, na normal e na reversa.
 
     :rtype: numpy array (len segunda, len primeira, 2)
     """
-    len2 = len(seq2)
-    len1 = len(seq1)
-    seq1 = str(seq1)
-    seq2_complement = str(seq2.complement())
-    seq2 = str(seq2)
-    rows = numpy.zeros((len2, len1, 3))
+    if seq_type == "N":
+        len2 = len(seq2)
+        len1 = len(seq1)
+        seq1 = str(seq1)
+        seq2_complement = str(seq2.complement())
+        seq2 = str(seq2)
+        rows = numpy.zeros((len2, len1, 3), numpy.uint8)
 
-    #  red
-    rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
-    #  green
-    rows[:, :, 1] = _weight_seqs(seq1, seq2_complement, rows[:, :, 1], max_window)
-    #  blue    
-    all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
-    rows[all_lines, all_columns, 2] = max_window
+        #  red
+        rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
+        #  green
+        rows[:, :, 1] = _weight_seqs(seq1, seq2_complement, rows[:, :, 1], max_window)
+        #  blue    
+        all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
+        rows[all_lines, all_columns, 2] = max_window
+    elif seq_type == "P":
+        rows = _weight_ptns(seq1, seq2, max_window)
     return rows
 
-
-def _produce_results_images(
-    matrix: numpy.ndarray, output_path: str,
-    filename: str, max_window: int
-):
-    new_name = f"{max_window}_{filename}"
-    matrix = numpy.invert(matrix)
-
-    os.makedirs(os.path.join(output_path, "result"), exist_ok=True)
+def _save_grayscale(
+        matrix: numpy.ndarray,
+        output_path: str,
+        filename: str
+    ):
+    os.makedirs(output_path, exist_ok=True)
     pyplot.imsave(
-        os.path.join(output_path, "result", f"red_{new_name}"),
-        matrix[:, :, 0], cmap=pyplot.cm.gray
-    )
-    pyplot.imsave(
-        os.path.join(output_path, "result", f"green_{new_name}"),
-        matrix[:, :, 1], cmap=pyplot.cm.gray
-    )
-    pyplot.imsave(
-        os.path.join(output_path, "result", f"blue_{new_name}"),
-        matrix[:, :, 2], cmap=pyplot.cm.gray
-    )
-
+            os.path.join(output_path, filename), matrix, cmap=pyplot.cm.gray
+        )
 
 def _produce_grayscale_groups(
         matrix: numpy.ndarray,
@@ -71,11 +73,7 @@ def _produce_grayscale_groups(
     }
 
     for name, group in groups.items():
-        os.makedirs(os.path.join(output_path, name), exist_ok=True)
-        pyplot.imsave(
-            os.path.join(output_path, name, filename),
-            group(matrix, axis=2), cmap=pyplot.cm.gray
-        )
+        _save_grayscale(group(matrix, axis=2), os.path.join(output_path, name), filename)
 
 
 def _produce_grayscale_by_channel(
@@ -90,11 +88,7 @@ def _produce_grayscale_by_channel(
         "gray_b": 2
     }
 
-    os.makedirs(os.path.join(output_path, channel_name), exist_ok=True)
-    pyplot.imsave(
-        os.path.join(output_path, channel_name, filename),
-        matrix[:, :, channels[channel_name]], cmap=pyplot.cm.gray
-    )
+    _save_grayscale(matrix[:, :, channels[channel_name]], os.path.join(output_path, channel_name), filename)
 
 
 def _produce_by_channel(
@@ -122,26 +116,27 @@ def _produce_by_channel(
 
 
 def _produce_channel_images(**kwargs):
-    _produce_by_channel("red", **kwargs)
-    _produce_by_channel("green", **kwargs)
-    _produce_by_channel("blue", **kwargs)
-    _produce_by_channel("full", **kwargs)
-    _produce_by_channel("red_blue", **kwargs)
-    _produce_by_channel("red_green", **kwargs)
-    _produce_by_channel("green_blue", **kwargs)
-    _produce_grayscale_by_channel("gray_r", **kwargs)
-    _produce_grayscale_by_channel("gray_g", **kwargs)
-    _produce_grayscale_by_channel("gray_b", **kwargs)
-    _produce_grayscale_groups(**kwargs)
+    if len(kwargs["matrix"].shape) == 3:
+        _produce_by_channel("full", **kwargs)
+        _produce_by_channel("red", **kwargs)
+        _produce_by_channel("green", **kwargs)
+        _produce_by_channel("blue", **kwargs)
+        _produce_by_channel("red_blue", **kwargs)
+        _produce_by_channel("red_green", **kwargs)
+        _produce_by_channel("green_blue", **kwargs)
+        _produce_grayscale_by_channel("gray_r", **kwargs)
+        _produce_grayscale_by_channel("gray_g", **kwargs)
+        _produce_grayscale_by_channel("gray_b", **kwargs)
+        _produce_grayscale_groups(**kwargs)
+    else:
+        kwargs["output_path"] = os.path.join(kwargs["output_path"], "full")
+        _save_grayscale(**kwargs)
 
 
 def save_image_by_matrices(
         name1: str, name2: str, seq1: Seq, seq2: Seq,
-        max_window: int, output_path: str):
-    matrix = build_matrix(seq1, seq2, max_window)
+        max_window: int, output_path: str, seq_type: str):
+    matrix = build_matrix(seq1, seq2, max_window, seq_type)
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
-    color_matrix = matrix.astype(numpy.uint8)
     _produce_channel_images(
-        matrix=color_matrix, output_path=output_path, filename=filename)
-    _produce_results_images(
-        color_matrix, output_path, filename, max_window)
+        matrix=matrix.astype(numpy.uint8), output_path=output_path, filename=filename)

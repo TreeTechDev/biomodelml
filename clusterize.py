@@ -1,57 +1,59 @@
 import os
-import tensorflow
-import numpy
-import cv2
 import itertools
 import pickle
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from typing import List
-from collections import OrderedDict
+from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS
+from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+from src.variants.uqi import UQIVariant
 
-folder = Path("/tmp")
-def read_image(img_folder: str, img_name: str):
-    im = cv2.imread(os.path.join(
-                    img_folder, img_name))
-    path = folder / img_folder / img_name
-    path.parent.mkdir(exist_ok=True, parents=True)
-    with open(path, "wb") as f:
-        numpy.save(f, cv2.cvtColor(im, cv2.COLOR_BGR2RGB))   # BGR -> RGB
-    return path
 
 def read_all_images(folders: List[str]):
     img_dict = dict()
     for folder in folders:
         for f in os.listdir(folder):
-            img_dict[f"{folder.split('/')[-2]}_{f}"] = read_image(folder, f)
+            img_dict[f"{folder.split('/')[-2]}_{f}"] = os.path.join(folder, f)
     return img_dict
 
 items = read_all_images([
-    "data/images/orthologs_androglobin/full/",
-    "data/images/orthologs_cytoglobin/full/",
-    "data/images/orthologs_hemoglobin_beta/full/",
-    "data/images/orthologs_myoglobin/full/",
-    "data/images/orthologs_neuroglobin/full/"
+    "data/images/N/orthologs_androglobin/full/",
+    "data/images/N/orthologs_cytoglobin/full/",
+    "data/images/N/orthologs_hemoglobin_beta/full/",
+    "data/images/N/orthologs_myoglobin/full/",
+    "data/images/N/orthologs_neuroglobin/full/"
 ])
 
-from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS, RecursionContext
-
-
 class SSIMSearch(SSIMVariant):
-    def __init__(self, **alg_params):
+    def __init__(self):
+        self._image_folder = ""
         self._alg_params = DEFAULT_PARAMS
-        self._alg_params.update(alg_params)
-        self.filter_size = self._alg_params["filter_size"]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
-ssim = SSIMSearch(filter_size=6, filter_sigma=0.7)
+
+class SSIMMultiScaleSearch(SSIMMultiScaleVariant):
+    def __init__(self):
+        self._image_folder = ""
+        self._alg_params = DEFAULT_PARAMS
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+
+class UQISearch(UQIVariant):
+    def __init__(self):
+        self._image_folder = ""
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+
+ssim = SSIMSearch()
+msssim = SSIMMultiScaleSearch()
+uqi = UQISearch()
+
+ALGORITMS = (ssim, msssim, uqi)
+
 
 def _metric(img_a, img_b):
-    with open(img_a, "rb") as f_a:
-        image_a = tensorflow.expand_dims(tensorflow.convert_to_tensor(numpy.array(numpy.load(f_a))), axis=0)
-    with open(img_b, "rb") as f_b:
-        image_b = tensorflow.expand_dims(tensorflow.convert_to_tensor(numpy.array(numpy.load(f_b))), axis=0)
-    with RecursionContext():
-        return ssim._match_images(image_a, image_b)[0]
+    results = dict()
+    for alg in ALGORITMS:
+        results[alg.name] = alg.calc_alg(img_a, img_b)
+    return results
 
 def _fit(item_a, item_b):
     print(str(item_a),str(item_b))
@@ -59,15 +61,16 @@ def _fit(item_a, item_b):
 
 
 class AdaptedNearestNeighbors():
-    def __init__(self, nproc=cpu_count()):
+    def __init__(self, algs, nproc=cpu_count()):
         self._items = {}
+        self._algs = algs
         self._i_and_d = {}
         self._nproc = nproc
 
     def fit(self, items: dict):
         self._items = items
-        self._i_and_d = {str(k): dict() for k in items.values()}
-        print(f"training for {len(items)}")
+        self._i_and_d = {a.name:{str(k): dict() for k in items.values()} for a in self._algs}
+        print(f"training for {len(items)} items and {len(self._algs)} algoritms")
         item_by_item = list(itertools.combinations(items.values(), 2))
         with Pool(self._nproc) as pool:
             result = pool.starmap(
@@ -76,59 +79,38 @@ class AdaptedNearestNeighbors():
         for i, (item_a, item_b) in enumerate(item_by_item):
             item_a = str(item_a)
             item_b = str(item_b)
-            self._i_and_d[item_a][item_b] = self._i_and_d[item_b][item_a] = result[i]
+            for alg in self._algs:
+                self._i_and_d[alg.name][item_a][item_b] = self._i_and_d[alg.name][item_b][item_a] = result[i][alg.name]
     
-    def predict(self, item):
-        if self._i_and_d.get(item):
-            close_item = item
-        else:  
-            closest = 0
-            close_item = None
-            for i in self._items:
-                prediction = _metric(self._items[i], item)
-                if prediction >= closest:
-                    closest = prediction
-                    close_item = str(self._items[i])
-                    if closest == 1:
-                        break
-        return OrderedDict(sorted(self._i_and_d[close_item].items(), key=lambda item: item[1]), reverse=True)
 
-ann = AdaptedNearestNeighbors()
+ann = AdaptedNearestNeighbors(ALGORITMS)
 
 if not Path("data/backup_cluster.pkl").exists():
     ann.fit(items)
     with open("data/backup_cluster.pkl", 'wb') as f:
         pickle.dump(ann, f)
 
-    with open("data/cluster_sim.txt", 'w') as f:
-        f.write(str(ann._i_and_d))
+    with open("data/cluster_sim.pkl", 'wb') as f:
+        pickle.dump(ann._i_and_d, f)
 
 with open("data/final_cluster.csv", "w") as f:
-    f.write("Name, Family, Right, Total\n")
-with open("data/cluster_sim.txt", "r") as f:
-    all_hash = eval(f.read())
-    for k, v in all_hash.items():
-        family = k.split("/")[-3]
-        name = k.split("/")[-1]
-        is_right = 0
-        total = 0
-        sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
-        for i, v in sorted_items:
-            if family == i.split("/")[-3]:
-                total += 1
-        for i, v in sorted_items[:total]:
-            if family == i.split("/")[-3]:
-                is_right += 1
-        result = f"{name},{family},{is_right},{total}\n"
-        print(result)
-        with open("data/final_cluster.csv", "a") as f:
-            f.write(result) 
-#r = ann.predict(read_image("data/images/orthologs_neuroglobin/full/", "prolemur_simus_ENSPSMG00000011006.png"))
-
-#c=0
-#for i, v in sorted(r.items(), key=lambda item: item[1]):
-#    c+=1
-#    print(i, v)
-#    if c > 20: break
-#with open("r.txt", 'w') as f:
-#    f.write(str(r))
+    f.write("Algoritm, Name, Family, Right, Total\n")
+with open("data/cluster_sim.pkl", "rb") as f:
+    all_hash = pickle.load(f)
+    for alg, results in all_hash.items():
+        for k, v in results.items():
+            family = k.split("/")[-3]
+            name = k.split("/")[-1]
+            is_right = 0
+            total = 0
+            sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
+            for i, v in sorted_items:
+                if family == i.split("/")[-3]:
+                    total += 1
+            for i, v in sorted_items[:total]:
+                if family == i.split("/")[-3]:
+                    is_right += 1
+            result = f"{alg},{name},{family},{is_right},{total}\n"
+            print(result)
+            with open("data/final_cluster.csv", "a") as f:
+                f.write(result) 
