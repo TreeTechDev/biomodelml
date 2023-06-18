@@ -10,8 +10,11 @@ from src.variants.control import ControlVariant
 from src.variants.sw import SmithWatermanVariant
 from src.variants.nw import NeedlemanWunschVariant
 from src.variants.uqi import UQIVariant
-from src.variants.ssim import SSIMVariant
-from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+from src.variants.resized_ssim import ResizedSSIMVariant
+from src.variants.resized_ssim_multiscale import ResizedSSIMMultiScaleVariant
+from src.variants.windowed_ssim_multiscale import WindowedSSIMMultiScaleVariant
+from src.variants.greedy_ssim import GreedySSIMVariant
+from src.variants.unrestricted_ssim import UnrestrictedSSIMVariant
 from src.variants.deep_search.variant import DeepSearchVariant
 
 
@@ -21,10 +24,13 @@ def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Opti
         ControlVariant(fasta_file, sequence_type),
         SmithWatermanVariant(fasta_file, sequence_type),
         NeedlemanWunschVariant(fasta_file, sequence_type),
-        SSIMVariant(fasta_file, sequence_type, image_path),
-        # SSIMMultiScaleVariant(fasta_file, sequence_type, image_path)
-        # UQIVariant(fasta_file, sequence_type, image_path),
-        # DeepSearchVariant(fasta_file, sequence_type, image_path)
+        ResizedSSIMVariant(fasta_file, sequence_type, image_path),
+        ResizedSSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
+        WindowedSSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
+        GreedySSIMVariant(fasta_file, sequence_type, image_path),
+        UnrestrictedSSIMVariant(fasta_file, sequence_type, image_path),
+        UQIVariant(fasta_file, sequence_type, image_path),
+        DeepSearchVariant(fasta_file, sequence_type, image_path)
     ).run().save()
 
 if __name__ == "__main__":

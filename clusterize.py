@@ -4,8 +4,12 @@ import pickle
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from typing import List
-from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS
-from src.variants.ssim_multiscale import SSIMMultiScaleVariant
+from src.variants.ssim_base import DEFAULT_PARAMS
+from src.variants.resized_ssim import ResizedSSIMVariant
+from src.variants.resized_ssim_multiscale import ResizedSSIMMultiScaleVariant
+from src.variants.windowed_ssim_multiscale import WindowedSSIMMultiScaleVariant
+from src.variants.greedy_ssim import GreedySSIMVariant
+from src.variants.unrestricted_ssim import UnrestrictedSSIMVariant
 from src.variants.uqi import UQIVariant
 
 
@@ -24,14 +28,33 @@ items = read_all_images([
     "data/images/N/orthologs_neuroglobin/full/"
 ])
 
-class SSIMSearch(SSIMVariant):
+class ResizedSSIMSearch(ResizedSSIMVariant):
     def __init__(self):
         self._image_folder = ""
         self._alg_params = DEFAULT_PARAMS
         self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
 
-class SSIMMultiScaleSearch(SSIMMultiScaleVariant):
+class ResizedSSIMMultiScaleSearch(ResizedSSIMMultiScaleVariant):
+    def __init__(self):
+        self._image_folder = ""
+        self._alg_params = DEFAULT_PARAMS
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+
+class WindowedSSIMMultiScaleSearch(WindowedSSIMMultiScaleVariant):
+    def __init__(self):
+        self._image_folder = ""
+        self._alg_params = DEFAULT_PARAMS
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+
+
+class GreedySSIMSearch(GreedySSIMVariant):
+    def __init__(self):
+        self._image_folder = ""
+        self._alg_params = DEFAULT_PARAMS
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+
+class UnrestrictedSSIMSearch(UnrestrictedSSIMVariant):
     def __init__(self):
         self._image_folder = ""
         self._alg_params = DEFAULT_PARAMS
@@ -42,11 +65,14 @@ class UQISearch(UQIVariant):
         self._image_folder = ""
         self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
 
-ssim = SSIMSearch()
-msssim = SSIMMultiScaleSearch()
+rssim = ResizedSSIMSearch()
+rmsssim = ResizedSSIMMultiScaleSearch()
+wmsssim = WindowedSSIMMultiScaleSearch()
+gssim = GreedySSIMSearch()
+ussim = UnrestrictedSSIMSearch()
 uqi = UQISearch()
 
-ALGORITMS = (ssim, msssim, uqi)
+ALGORITMS = (rssim, rmsssim, wmsssim, gssim, ussim, uqi)
 
 
 def _metric(img_a, img_b):
