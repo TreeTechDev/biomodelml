@@ -14,7 +14,7 @@ SEED = 42
 def control():
     data_path = Path(sys.argv[1])
     seq = sys.argv[2]
-    fasta_file = data_path / f"{seq}.fasta.sanitized"
+    fasta_file = data_path / f"{seq}.fasta.N.sanitized"
     experiment = Experiment(
         data_path,
         ControlVariant(fasta_file, "N")
