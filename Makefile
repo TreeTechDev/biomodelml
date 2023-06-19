@@ -46,41 +46,37 @@ matches:
 	CMD="python $(APP_DIR)/matchmatrix.py $(DATA_DIR)/$(SEQ).fasta.$(TYPE).sanitized $(DATA_DIR)/images/$(TYPE)/ $(TYPE)" $(MAKE) run-docker
 
 tree-by-channel:
-	CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.$(TYPE).sanitized $(DATA_DIR)/trees/$(TYPE)/$(CHANNEL)/ $(TYPE) $(DATA_DIR)/images/$(TYPE)/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
+	-CMD="python $(APP_DIR)/tree_builder.py $(DATA_DIR)/$(SEQ).fasta.$(TYPE).sanitized $(DATA_DIR)/trees/$(TYPE)/$(CHANNEL)/ $(TYPE) $(DATA_DIR)/images/$(TYPE)/$(SEQ)/$(CHANNEL)/" $(MAKE) run-docker
 
 t_%:
 	CHANNEL="$*" $(MAKE) tree-by-channel
 
 tree: t_full t_gray_r t_gray_b t_gray_g t_gray_mean
 
-validate:
-	CMD="python $(APP_DIR)/validate.py $(DATA_DIR)/trees/ $(SEQ)" $(MAKE) run-docker
-
-run: | sanitize matches tree validate
+run: | sanitize matches tree
 
 optimize: | sanitize matches
 	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
 
 try:
-	rm -rf $(FULL_DATA_DIR)/images/orthologs_neuroglobin/*
-	rm -rf $(FULL_DATA_DIR)/trees/full/orthologs_neuroglobin/*
+	rm -rf $(FULL_DATA_DIR)/images/N/orthologs_neuroglobin/*
+	rm -rf $(FULL_DATA_DIR)/trees/N/full/orthologs_neuroglobin/*
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
 
 exp_by_type:
-	SEQ="orthologs_myoglobin" $(MAKE) run
-	SEQ="orthologs_neuroglobin" $(MAKE) run
 	SEQ="orthologs_hemoglobin_beta" $(MAKE) run
-	SEQ="orthologs_cytoglobin" $(MAKE) run
-	SEQ="orthologs_androglobin" $(MAKE) run
-	#SEQ="indelible" $(MAKE) run
+	# SEQ="orthologs_myoglobin" $(MAKE) run
+	# SEQ="orthologs_neuroglobin" $(MAKE) run
+	# SEQ="orthologs_cytoglobin" $(MAKE) run
+	# SEQ="orthologs_androglobin" $(MAKE) run
+	# #SEQ="indelible" $(MAKE) run
 
 experiments:
 	TYPE="P" $(MAKE) exp_by_type
 	TYPE="N" $(MAKE) exp_by_type
 
-#TODO adequar ao numero do blast de cada um
 cluster:
-	CMD="bash run_blast.sh 6" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
+	CMD="bash run_blast.sh 11" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches

@@ -13,11 +13,19 @@ from src.structs import DistanceStruct, ImgMap, ImgDebug, ImgDebugs
 
 MAX_POSSIBLE_SCORE = 1.0
 DEFAULT_PARAMS = dict(
-    filter_sigma=1.5,
-    k1=0.01,
-    k2=0.03,
-    filter_size=11,
-    max_val=255
+    N=dict(
+        filter_sigma=1.5,
+        k1=0.01,
+        k2=0.03,
+        filter_size=11,
+        max_val=255
+    ), P=dict(
+        filter_sigma=0.5,
+        k1=0.01,
+        k2=0.03,
+        filter_size=3,
+        max_val=255
+    ),
 )
 
 
@@ -28,9 +36,8 @@ class SSIMVariant(Variant):
     def __init__(self, fasta_file: str, sequence_type: str, image_folder: str, **alg_params):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
-        self._alg_params = DEFAULT_PARAMS
+        self._alg_params = DEFAULT_PARAMS[sequence_type]
         self._alg_params.update(alg_params)
-        self._alg_params["filter_size"] = self._alg_params["filter_size"] // 3 if sequence_type == "P" else self._alg_params["filter_size"]
         self.filter_size = self._alg_params["filter_size"]
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())
 
@@ -64,7 +71,7 @@ class SSIMVariant(Variant):
 
         mask_size = min_img.shape[1]
         filter_size = self.filter_size
-        step = filter_size // 2
+        step = max(filter_size // 2, 1)
         default_args = (mask_size, filter_size, step)
         img_map = self._find_best_col(min_img, max_img, *default_args)
         return numpy.mean(img_map.scores), img_map.debugs
@@ -109,7 +116,6 @@ class SSIMVariant(Variant):
             else:
                 df.loc[idx1, :] = results
             last_ids.append(idx1)
-
         return DistanceStruct(
             names=indexes,
             matrix=1.0-df.to_numpy(numpy.float64),

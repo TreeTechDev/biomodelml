@@ -31,7 +31,7 @@ def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Opti
         UnrestrictedSSIMVariant(fasta_file, sequence_type, image_path),
         UQIVariant(fasta_file, sequence_type, image_path),
         DeepSearchVariant(fasta_file, sequence_type, image_path)
-    ).run().save()
+    ).run_and_save()
 
 if __name__ == "__main__":
     fasta_file = sys.argv[1]

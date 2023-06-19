@@ -14,76 +14,78 @@ from src.variants.uqi import UQIVariant
 
 
 def read_all_images(folders: List[str]):
-    img_dict = dict()
+    img_dict = dict(P=dict(), N=dict())
     for folder in folders:
-        for f in os.listdir(folder):
-            img_dict[f"{folder.split('/')[-2]}_{f}"] = os.path.join(folder, f)
+        for t in img_dict.keys():
+            formated_folder = folder.format(t)
+            for f in os.listdir(formated_folder):
+                img_dict[t][f"{formated_folder.split('/')[-2]}_{f}"] = os.path.join(formated_folder, f)
     return img_dict
 
 items = read_all_images([
-    "data/images/N/orthologs_androglobin/full/",
-    "data/images/N/orthologs_cytoglobin/full/",
-    "data/images/N/orthologs_hemoglobin_beta/full/",
-    "data/images/N/orthologs_myoglobin/full/",
-    "data/images/N/orthologs_neuroglobin/full/"
+    "data/images/{}/orthologs_androglobin/full/",
+    "data/images/{}/orthologs_cytoglobin/full/",
+    "data/images/{}/orthologs_hemoglobin_beta/full/",
+    "data/images/{}/orthologs_myoglobin/full/",
+    "data/images/{}/orthologs_neuroglobin/full/"
 ])
 
 class ResizedSSIMSearch(ResizedSSIMVariant):
-    def __init__(self):
+    def __init__(self, types):
         self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+        self._alg_params = DEFAULT_PARAMS[types]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 
 class ResizedSSIMMultiScaleSearch(ResizedSSIMMultiScaleVariant):
-    def __init__(self):
+    def __init__(self, types):
         self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+        self._alg_params = DEFAULT_PARAMS[types]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 class WindowedSSIMMultiScaleSearch(WindowedSSIMMultiScaleVariant):
-    def __init__(self):
+    def __init__(self, types):
         self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+        self._alg_params = DEFAULT_PARAMS[types]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 
 class GreedySSIMSearch(GreedySSIMVariant):
-    def __init__(self):
+    def __init__(self, types):
         self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+        self._alg_params = DEFAULT_PARAMS[types]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 class UnrestrictedSSIMSearch(UnrestrictedSSIMVariant):
-    def __init__(self):
+    def __init__(self, types):
         self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+        self._alg_params = DEFAULT_PARAMS[types]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 class UQISearch(UQIVariant):
-    def __init__(self):
+    def __init__(self, types):
         self._image_folder = ""
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items.values()]
+        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
-rssim = ResizedSSIMSearch()
-rmsssim = ResizedSSIMMultiScaleSearch()
-wmsssim = WindowedSSIMMultiScaleSearch()
-gssim = GreedySSIMSearch()
-ussim = UnrestrictedSSIMSearch()
-uqi = UQISearch()
+rssim = ResizedSSIMSearch
+rmsssim = ResizedSSIMMultiScaleSearch
+wmsssim = WindowedSSIMMultiScaleSearch
+gssim = GreedySSIMSearch
+ussim = UnrestrictedSSIMSearch
+uqi = UQISearch
 
 ALGORITMS = (rssim, rmsssim, wmsssim, gssim, ussim, uqi)
 
 
-def _metric(img_a, img_b):
+def _metric(img_a, img_b, types):
     results = dict()
     for alg in ALGORITMS:
-        results[alg.name] = alg.calc_alg(img_a, img_b)
+        results[alg.name] = alg(types).calc_alg(img_a, img_b)
     return results
 
-def _fit(item_a, item_b):
+def _fit(item_a, item_b, types):
     print(str(item_a),str(item_b))
-    return _metric(item_a, item_b)
+    return _metric(item_a, item_b, types)
 
 
 class AdaptedNearestNeighbors():
@@ -95,18 +97,21 @@ class AdaptedNearestNeighbors():
 
     def fit(self, items: dict):
         self._items = items
-        self._i_and_d = {a.name:{str(k): dict() for k in items.values()} for a in self._algs}
-        print(f"training for {len(items)} items and {len(self._algs)} algoritms")
-        item_by_item = list(itertools.combinations(items.values(), 2))
-        with Pool(self._nproc) as pool:
-            result = pool.starmap(
-                _fit,
-                item_by_item)
-        for i, (item_a, item_b) in enumerate(item_by_item):
-            item_a = str(item_a)
-            item_b = str(item_b)
-            for alg in self._algs:
-                self._i_and_d[alg.name][item_a][item_b] = self._i_and_d[alg.name][item_b][item_a] = result[i][alg.name]
+        self._i_and_d = dict(
+            P={a.name:{str(k): dict() for k in items["P"].values()} for a in self._algs},
+            N={a.name:{str(k): dict() for k in items["N"].values()} for a in self._algs})
+        print(f"training for {len(items['P'])} protein and {len(items['N'])} nucleotide sequences with {len(self._algs)} algoritms")
+        for types in ["P", "N"]:
+            item_by_item = [(ia, ib, types) for ia, ib in itertools.combinations(items[types].values(), 2)]
+            with Pool(self._nproc) as pool:
+                result = pool.starmap(
+                    _fit,
+                    item_by_item)
+            for i, (item_a, item_b, types) in enumerate(item_by_item):
+                item_a = str(item_a)
+                item_b = str(item_b)
+                for alg in self._algs:
+                    self._i_and_d[types][alg.name][item_a][item_b] = self._i_and_d[types][alg.name][item_b][item_a] = result[i][alg.name]
     
 
 ann = AdaptedNearestNeighbors(ALGORITMS)
@@ -120,23 +125,24 @@ if not Path("data/backup_cluster.pkl").exists():
         pickle.dump(ann._i_and_d, f)
 
 with open("data/final_cluster.csv", "w") as f:
-    f.write("Algoritm, Name, Family, Right, Total\n")
+    f.write("Type,Algoritm,Name,Family,Right,Total\n")
 with open("data/cluster_sim.pkl", "rb") as f:
     all_hash = pickle.load(f)
-    for alg, results in all_hash.items():
-        for k, v in results.items():
-            family = k.split("/")[-3]
-            name = k.split("/")[-1]
-            is_right = 0
-            total = 0
-            sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
-            for i, v in sorted_items:
-                if family == i.split("/")[-3]:
-                    total += 1
-            for i, v in sorted_items[:total]:
-                if family == i.split("/")[-3]:
-                    is_right += 1
-            result = f"{alg},{name},{family},{is_right},{total}\n"
-            print(result)
-            with open("data/final_cluster.csv", "a") as f:
-                f.write(result) 
+    for t, alg in all_hash.items():
+        for results in all_hash[t][alg].values():
+            for k, v in results.items():
+                family = k.split("/")[-3]
+                name = k.split("/")[-1]
+                is_right = 0
+                total = 0
+                sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
+                for i, v in sorted_items:
+                    if family == i.split("/")[-3]:
+                        total += 1
+                for i, v in sorted_items[:total]:
+                    if family == i.split("/")[-3]:
+                        is_right += 1
+                result = f"{t},{alg},{name},{family},{is_right},{total}\n"
+                print(result)
+                with open("data/final_cluster.csv", "a") as f:
+                    f.write(result) 

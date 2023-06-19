@@ -139,4 +139,4 @@ def save_image_by_matrices(
     matrix = build_matrix(seq1, seq2, max_window, seq_type)
     filename = f"{name1}x{name2}.png" if name1 != name2 else f"{name1}.png"
     _produce_channel_images(
-        matrix=matrix.astype(numpy.uint8), output_path=output_path, filename=filename)
+        matrix=matrix, output_path=output_path, filename=filename)

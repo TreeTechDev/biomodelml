@@ -79,7 +79,7 @@ class UQIVariant(Variant):
             idx1 = img1.split('.')[0]
             with Pool(threads) as pool:
                 result = pool.starmap(
-                    self._calc_uqi,
+                    self.calc_alg,
                     [(img1, img2) for img2 in files[idx:]]
                 )
             if last_ids:

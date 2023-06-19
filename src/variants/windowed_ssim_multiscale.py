@@ -21,7 +21,7 @@ class WindowedSSIMMultiScaleVariant(SSIMMultiScaleVariant):
         for i in range(0, big_img.shape[1]-window+1, step):
             score = self._call_alg(
                 tensorflow.expand_dims(small_img, axis=0),
-                tensorflow.expand_dims(big_img[s1+i:s2+i, s1+i:s2+i], axis=0))[0]
+                tensorflow.expand_dims(big_img[s1+i:s2+i, s1+i:s2+i], axis=0))
             max_score = max((score, max_score))
             debugs.append(
                 ImgDebug(str(score), str(s1+i), str(s1+i), str(s2+i), str(s2+i), str(big_img.shape[1])))
