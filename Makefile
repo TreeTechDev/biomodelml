@@ -65,11 +65,11 @@ try:
 
 exp_by_type:
 	SEQ="orthologs_hemoglobin_beta" $(MAKE) run
-	# SEQ="orthologs_myoglobin" $(MAKE) run
-	# SEQ="orthologs_neuroglobin" $(MAKE) run
-	# SEQ="orthologs_cytoglobin" $(MAKE) run
-	# SEQ="orthologs_androglobin" $(MAKE) run
-	# #SEQ="indelible" $(MAKE) run
+	SEQ="orthologs_myoglobin" $(MAKE) run
+	SEQ="orthologs_neuroglobin" $(MAKE) run
+	SEQ="orthologs_cytoglobin" $(MAKE) run
+	SEQ="orthologs_androglobin" $(MAKE) run
+	SEQ="indelible" $(MAKE) run
 
 experiments:
 	TYPE="P" $(MAKE) exp_by_type
@@ -77,8 +77,14 @@ experiments:
 
 cluster:
 	CMD="bash run_blast.sh 11" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
-	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) matches
-	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) matches
-	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) matches
-	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) matches
+	SEQ="orthologs_cytoglobin" TYPE="P" $(MAKE) sanitize matches
+	SEQ="orthologs_myoglobin" TYPE="P" $(MAKE) sanitize matches
+	SEQ="orthologs_neuroglobin" TYPE="P" $(MAKE) sanitize matches
+	SEQ="orthologs_hemoglobin_beta" TYPE="P" $(MAKE) sanitize matches
+	SEQ="indelible" TYPE="P" $(MAKE) sanitize matches
+	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) sanitize matches
+	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) sanitize matches
+	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) sanitize matches
+	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) sanitize matches
+	SEQ="indelible" TYPE="N" $(MAKE) sanitize matches
 	CMD="python clusterize.py $(SEQ)" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
