@@ -4,7 +4,6 @@ import pickle
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from typing import List
-from src.variants.ssim_base import DEFAULT_PARAMS
 from src.variants.resized_ssim import ResizedSSIMVariant
 from src.variants.resized_ssim_multiscale import ResizedSSIMMultiScaleVariant
 from src.variants.windowed_ssim_multiscale import WindowedSSIMMultiScaleVariant
@@ -12,9 +11,10 @@ from src.variants.greedy_ssim import GreedySSIMVariant
 from src.variants.unrestricted_ssim import UnrestrictedSSIMVariant
 from src.variants.uqi import UQIVariant
 
+TYPES_DICT = dict(P=dict(), N=dict())
 
 def read_all_images(folders: List[str]):
-    img_dict = dict(P=dict(), N=dict())
+    img_dict = TYPES_DICT.copy()
     for folder in folders:
         for t in img_dict.keys():
             formated_folder = folder.format(t)
@@ -31,57 +31,32 @@ items = read_all_images([
     "data/images/{}/orthologs_neuroglobin/full/"
 ])
 
-class ResizedSSIMSearch(ResizedSSIMVariant):
-    def __init__(self, types):
-        self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS[types]
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
+item_list = []
+for types in TYPES_DICT.keys():
+    item_list += [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
-class ResizedSSIMMultiScaleSearch(ResizedSSIMMultiScaleVariant):
-    def __init__(self, types):
-        self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS[types]
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
+rssim = ResizedSSIMVariant
+rmsssim = ResizedSSIMMultiScaleVariant
+wmsssim = WindowedSSIMMultiScaleVariant
+gssim = GreedySSIMVariant
+ussim = UnrestrictedSSIMVariant
+uqi = UQIVariant
 
-class WindowedSSIMMultiScaleSearch(WindowedSSIMMultiScaleVariant):
-    def __init__(self, types):
-        self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS[types]
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
-
-
-class GreedySSIMSearch(GreedySSIMVariant):
-    def __init__(self, types):
-        self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS[types]
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
-
-class UnrestrictedSSIMSearch(UnrestrictedSSIMVariant):
-    def __init__(self, types):
-        self._image_folder = ""
-        self._alg_params = DEFAULT_PARAMS[types]
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
-
-class UQISearch(UQIVariant):
-    def __init__(self, types):
-        self._image_folder = ""
-        self._names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
-
-rssim = ResizedSSIMSearch
-rmsssim = ResizedSSIMMultiScaleSearch
-wmsssim = WindowedSSIMMultiScaleSearch
-gssim = GreedySSIMSearch
-ussim = UnrestrictedSSIMSearch
-uqi = UQISearch
-
-ALGORITMS = (rssim, rmsssim, wmsssim, gssim, ussim, uqi)
+ALGORITMS = (
+    ResizedSSIMVariant,
+    ResizedSSIMMultiScaleVariant,
+    WindowedSSIMMultiScaleVariant,
+    GreedySSIMVariant,
+    UnrestrictedSSIMVariant,
+    UQIVariant
+)
 
 
 def _metric(img_a, img_b, types):
     results = dict()
     for alg in ALGORITMS:
-        results[alg.name] = alg(types).calc_alg(img_a, img_b)
+        results[alg.name] = alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
     return results
 
 def _fit(item_a, item_b, types):

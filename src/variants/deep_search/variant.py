@@ -9,7 +9,7 @@ class DeepSearchVariant(Variant):
 
     name = "Deep Search with Annoy"
 
-    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
+    def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = ""):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
         self._input_shape = (2000, 2000, 3)

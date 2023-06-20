@@ -33,7 +33,7 @@ class SSIMVariant(Variant):
 
     name = "Structural Similarity Index Measure"
 
-    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str, **alg_params):
+    def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = "", **alg_params):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
         self._alg_params = DEFAULT_PARAMS[sequence_type]
