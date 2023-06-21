@@ -37,7 +37,7 @@ push:
 	docker push $(IMG_NAME)
 
 run-docker:
-	docker run $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
+	docker run -it $(DOCKER_FLAGS) -v $(FULL_ROOT_DIR):$(APP_DIR) $(IMG_NAME) $(CMD)
 
 sanitize:
 	CMD="python $(APP_DIR)/sanitize_seqs.py $(DATA_DIR)/$(SEQ).fasta $(TYPE)" $(MAKE) run-docker
@@ -78,11 +78,13 @@ experiments:
 cluster:
 	CMD="bash run_blastn.sh 11" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
 	CMD="bash run_blastp.sh 3" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
+	SEQ="orthologs_androglobin" TYPE="P" $(MAKE) sanitize matches
 	SEQ="orthologs_cytoglobin" TYPE="P" $(MAKE) sanitize matches
 	SEQ="orthologs_myoglobin" TYPE="P" $(MAKE) sanitize matches
 	SEQ="orthologs_neuroglobin" TYPE="P" $(MAKE) sanitize matches
 	SEQ="orthologs_hemoglobin_beta" TYPE="P" $(MAKE) sanitize matches
 	SEQ="indelible" TYPE="P" $(MAKE) sanitize matches
+	SEQ="orthologs_androglobin" TYPE="N" $(MAKE) sanitize matches
 	SEQ="orthologs_cytoglobin" TYPE="N" $(MAKE) sanitize matches
 	SEQ="orthologs_myoglobin" TYPE="N" $(MAKE) sanitize matches
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) sanitize matches

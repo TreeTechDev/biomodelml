@@ -78,6 +78,7 @@ class AdaptedNearestNeighbors():
             N={a.name:{str(k): dict() for k in items["N"].values()} for a in self._algs})
         print(f"training for {len(items['P'])} protein and {len(items['N'])} nucleotide sequences with {len(self._algs)} algoritms")
         for types in ["P", "N"]:
+            print(f"doing for {types}")
             item_by_item = [(ia, ib, types) for ia, ib in itertools.combinations(items[types].values(), 2)]
             with Pool(self._nproc) as pool:
                 result = pool.starmap(
@@ -104,9 +105,9 @@ with open("data/final_cluster.csv", "w") as f:
     f.write("Type,Algoritm,Name,Family,Right,Total\n")
 with open("data/cluster_sim.pkl", "rb") as f:
     all_hash = pickle.load(f)
-    for t, alg in all_hash.items():
-        for results in all_hash[t][alg].values():
-            for k, v in results.items():
+    for t in all_hash:
+        for alg in all_hash[t]:
+            for k, v in all_hash[t][alg].items():
                 family = k.split("/")[-3]
                 name = k.split("/")[-1]
                 is_right = 0
