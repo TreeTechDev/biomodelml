@@ -36,7 +36,7 @@ class SSIMVariant(Variant):
     def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = "", **alg_params):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
-        self._alg_params = DEFAULT_PARAMS[sequence_type]
+        self._alg_params = DEFAULT_PARAMS[sequence_type].copy()
         self._alg_params.update(alg_params)
         self.filter_size = self._alg_params["filter_size"]
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())

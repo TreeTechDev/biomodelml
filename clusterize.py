@@ -102,7 +102,7 @@ if not Path("data/backup_cluster.pkl").exists():
         pickle.dump(ann._i_and_d, f)
 
 with open("data/final_cluster.csv", "w") as f:
-    f.write("Type,Algoritm,Name,Family,Right,Total\n")
+    f.write("Type,Algorithm,Name,Family,Right,Total\n")
 with open("data/cluster_sim.pkl", "rb") as f:
     all_hash = pickle.load(f)
     for t in all_hash:

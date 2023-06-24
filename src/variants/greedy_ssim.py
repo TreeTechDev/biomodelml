@@ -1,6 +1,4 @@
 import tensorflow
-from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import cpu_count
 from tensorflow import Tensor
 from src.variants.ssim_base import SSIMVariant, MAX_POSSIBLE_SCORE
 from src.structs import ImgMap, ImgDebug
@@ -9,10 +7,6 @@ from src.structs import ImgMap, ImgDebug
 class GreedySSIMVariant(SSIMVariant):
 
     name = "Greedy Sliced Structural Similarity Index Measure"
-
-    def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = "", **alg_params):
-        super().__init__(fasta_file, sequence_type, image_folder, **alg_params)
-        self._executor = ThreadPoolExecutor(max_workers=cpu_count()*10)
 
     def _greedy_find_image_match(
         self,

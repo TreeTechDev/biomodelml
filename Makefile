@@ -51,7 +51,7 @@ tree-by-channel:
 t_%:
 	CHANNEL="$*" $(MAKE) tree-by-channel
 
-tree: t_full t_gray_r t_gray_b t_gray_g t_gray_mean
+tree: t_full t_gray_r t_gray_g t_gray_b
 
 run: | sanitize matches tree
 
