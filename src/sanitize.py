@@ -1,12 +1,12 @@
-import os
 from Bio import SeqIO
 from biotite.sequence import NucleotideSequence, ProteinSequence, AlphabetError
 from src.structs import SeqTypeStruct
 
 
 NUCLEOTIDE_SYMBOLS = NucleotideSequence.alphabet_unamb.get_symbols() + ["U"]
-PROTEIN_SYMBOLS = ProteinSequence.alphabet.get_symbols()[:20]
-SEQ_TYPES = SeqTypeStruct(N=NUCLEOTIDE_SYMBOLS, P=PROTEIN_SYMBOLS)
+ALL_NUCLEOTIDE_SYMBOLS = NUCLEOTIDE_SYMBOLS + NucleotideSequence.alphabet_amb.get_symbols()
+PROTEIN_SYMBOLS = ProteinSequence.alphabet.get_symbols()
+SEQ_TYPES = SeqTypeStruct(N=ALL_NUCLEOTIDE_SYMBOLS, P=PROTEIN_SYMBOLS)
 
 
 def convert_and_remove_unrelated_sequences(seq_path: str, seq_type):
@@ -16,9 +16,11 @@ def convert_and_remove_unrelated_sequences(seq_path: str, seq_type):
         sequences = SeqIO.parse(handle, "fasta")
         sanitized_seqs = []
         for s in sequences:
+            s.seq = s.seq.upper()
             alphabet = set(s.seq)
             if alphabet.issubset(getattr(SEQ_TYPES, seq_type)):
-                if seq_type == "P":
+                t = s
+                if seq_type == "P" and alphabet.issubset(NUCLEOTIDE_SYMBOLS):
                     try:
                         NucleotideSequence(s.seq, False)
                         t = s.translate(stop_symbol="")
@@ -26,9 +28,9 @@ def convert_and_remove_unrelated_sequences(seq_path: str, seq_type):
                         t.id = s.id
                         print(f"Sequence {t.description} translated")
                     except AlphabetError:
-                        pass
-                else:
-                    t = s
+                        print(f"Error on sequence {s.description} and it's removed")
+                        continue
+                
                 sanitized_seqs.append(t)
             else:
                 print(f"Sequence {s.description} removed")

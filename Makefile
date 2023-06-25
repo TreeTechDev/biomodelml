@@ -1,4 +1,4 @@
-.PHONY: clean build test pull push sanitize matches tree run experiments optimize try cluster
+.PHONY: clean build test pull push sanitize matches tree run experiments afproject optimize try cluster
 
 .SECONDARY:
 
@@ -53,7 +53,7 @@ t_%:
 
 tree: t_full t_gray_r t_gray_g t_gray_b
 
-run: | sanitize matches tree
+run: | sanitize matches #tree
 
 optimize: | sanitize matches
 	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
@@ -74,6 +74,21 @@ exp_by_type:
 experiments:
 	TYPE="P" $(MAKE) exp_by_type
 	TYPE="N" $(MAKE) exp_by_type
+
+afproject:
+	TYPE="P" SEQ="ST001" $(MAKE) run
+	TYPE="P" SEQ="ST002" $(MAKE) run
+	TYPE="P" SEQ="ST003" $(MAKE) run
+	TYPE="P" SEQ="ST004" $(MAKE) run
+	TYPE="P" SEQ="ST005" $(MAKE) run
+	TYPE="P" SEQ="ST007" $(MAKE) run
+	TYPE="P" SEQ="ST008" $(MAKE) run
+	TYPE="P" SEQ="ST009" $(MAKE) run
+	TYPE="P" SEQ="ST010" $(MAKE) run
+	TYPE="P" SEQ="ST011" $(MAKE) run
+	TYPE="P" SEQ="swisstree" $(MAKE) run
+	TYPE="N" SEQ="fish_mito" $(MAKE) run
+
 
 cluster:
 	CMD="bash run_blastn.sh 11" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
