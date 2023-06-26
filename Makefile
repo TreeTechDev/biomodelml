@@ -53,7 +53,7 @@ t_%:
 
 tree: t_full t_gray_r t_gray_g t_gray_b
 
-run: | sanitize matches #tree
+run: | sanitize matches tree
 
 optimize: | sanitize matches
 	CMD="python $(APP_DIR)/optimize.py $(DATA_DIR) $(SEQ)" $(MAKE) run-docker
