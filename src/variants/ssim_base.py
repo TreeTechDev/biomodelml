@@ -20,10 +20,10 @@ DEFAULT_PARAMS = dict(
         filter_size=11,
         max_val=255
     ), P=dict(
-        filter_sigma=0.5,
+        filter_sigma=1.5,
         k1=0.01,
         k2=0.03,
-        filter_size=3,
+        filter_size=4,
         max_val=255
     ),
 )

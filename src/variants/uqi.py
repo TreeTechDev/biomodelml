@@ -4,7 +4,6 @@ import numpy
 import cv2
 from typing import Tuple
 from sewar.full_ref import uqi
-from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool
 from src.variants.variant import Variant
 from src.structs import DistanceStruct

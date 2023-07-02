@@ -1,28 +1,58 @@
 import os
 import numpy
+import itertools
 from matplotlib import pyplot
 from Bio.Seq import Seq
 from biotite.sequence.align import SubstitutionMatrix
-from biotite.sequence import NucleotideSequence
+from biotite.sequence import NucleotideSequence, ProteinSequence
+from src.submatrix import SNEATH, PROTSUB
 
 NUCLEOTIDES = NucleotideSequence.alphabet_amb.get_symbols()
+HYDROPHILIC = "STYNQDE"
+HYDROPHOBIC = "GAVCPLIMWFKRH"
+ALL_PROTEINS = ProteinSequence.alphabet.get_symbols()
+PROTEINS = HYDROPHILIC+HYDROPHOBIC
 
-def _weight_ptns(seq1: Seq, seq2: Seq, max_window: int):
-    subst_matrix = SubstitutionMatrix.dict_from_db("BLOSUM62")
-    min_subst = min(subst_matrix.values())
-    max_subst = max(subst_matrix.values()) + abs(min_subst)
+def _weight_ptns(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
 
-    rows = numpy.zeros((len(seq2), len(seq1)), numpy.uint8)
+    rgb_dict = {}
+    total_aa_combines = itertools.combinations_with_replacement(ALL_PROTEINS, 2)
+    substmatrix = SubstitutionMatrix.dict_from_str(PROTSUB)
+    min_subst = min(substmatrix.values())
+    max_subst = max(substmatrix.values()) + abs(min_subst)
+    sneath = SubstitutionMatrix.dict_from_str(SNEATH)
+    min_sneath = min(substmatrix.values())
+    max_sneath = max(substmatrix.values())-min_sneath
+    for aa1, aa2 in total_aa_combines:
+
+        color_by_subst = round((substmatrix[aa1, aa2]+abs(min_subst))*max_window/max_subst)
+        color_by_sneath = round((sneath.get((aa1, aa2), min_sneath)-min_sneath)*max_window/(max_sneath))
+        combinations = max_window if aa1 == aa2 else 0
+
+        if ((aa1 in PROTEINS) and (aa2 in PROTEINS)):
+            rgb_dict[(aa1, aa2)] = rgb_dict[(aa2, aa1)] = (color_by_subst,
+                                                            combinations,
+                                                            color_by_sneath
+                                                            )
+
+        else:
+            rgb_dict[(aa1, aa2)] = rgb_dict[(aa2, aa1)] = (color_by_subst,
+                                                            0,
+                                                            0,
+                                                            )
     for line, letter1 in enumerate(seq2):
         for col, letter2 in enumerate(seq1):
-            rows[line, col] = round((subst_matrix[letter1, letter2]+abs(min_subst))*max_window/max_subst)
+            rows[line, col, :] = rgb_dict[letter1, letter2]
+
     return rows
+
 
 def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
     indexes = dict()
     for line, letter in enumerate(seq2):
         if (letter not in indexes) and (letter in NUCLEOTIDES):
-            indexes[letter] = numpy.where(numpy.array(list(seq1)) == seq2[line])[0]
+            indexes[letter] = numpy.where(
+                numpy.array(list(seq1)) == seq2[line])[0]
         idx = indexes[letter]
         rows[line, idx] = max_window
     return rows
@@ -35,34 +65,40 @@ def build_matrix(seq1: Seq, seq2: Seq, max_window: int, seq_type: str):
 
     :rtype: numpy array (len segunda, len primeira, 2)
     """
+    len2 = len(seq2)
+    len1 = len(seq1)
+    rows = numpy.zeros((len2, len1, 3), numpy.uint8)
     if seq_type == "N":
-        len2 = len(seq2)
-        len1 = len(seq1)
         seq1 = str(seq1)
         seq2_complement = str(seq2.complement())
         seq2 = str(seq2)
-        rows = numpy.zeros((len2, len1, 3), numpy.uint8)
 
         #  red
         rows[:, :, 0] = _weight_seqs(seq1, seq2, rows[:, :, 0], max_window)
         #  green
-        rows[:, :, 1] = _weight_seqs(seq1, seq2_complement, rows[:, :, 1], max_window)
-        #  blue    
-        all_lines, all_columns = numpy.where((rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
+        rows[:, :, 1] = _weight_seqs(
+            seq1, seq2_complement, rows[:, :, 1], max_window)
+        #  blue
+        all_lines, all_columns = numpy.where(
+            (rows[:, :, 0] == 0) & (rows[:, :, 1] == 0))
         rows[all_lines, all_columns, 2] = max_window
     elif seq_type == "P":
-        rows = _weight_ptns(seq1, seq2, max_window)
+
+        rows = _weight_ptns(seq1, seq2, rows, max_window)
+
     return rows
 
+
 def _save_grayscale(
-        matrix: numpy.ndarray,
-        output_path: str,
-        filename: str
-    ):
+    matrix: numpy.ndarray,
+    output_path: str,
+    filename: str
+):
     os.makedirs(output_path, exist_ok=True)
     pyplot.imsave(
-            os.path.join(output_path, filename), matrix, cmap=pyplot.cm.gray
-        )
+        os.path.join(output_path, filename), matrix, cmap=pyplot.cm.gray
+    )
+
 
 def _produce_grayscale_groups(
         matrix: numpy.ndarray,
@@ -75,7 +111,8 @@ def _produce_grayscale_groups(
     }
 
     for name, group in groups.items():
-        _save_grayscale(group(matrix, axis=2), os.path.join(output_path, name), filename)
+        _save_grayscale(group(matrix, axis=2), os.path.join(
+            output_path, name), filename)
 
 
 def _produce_grayscale_by_channel(
@@ -90,7 +127,8 @@ def _produce_grayscale_by_channel(
         "gray_b": 2
     }
 
-    _save_grayscale(matrix[:, :, channels[channel_name]], os.path.join(output_path, channel_name), filename)
+    _save_grayscale(matrix[:, :, channels[channel_name]],
+                    os.path.join(output_path, channel_name), filename)
 
 
 def _produce_by_channel(

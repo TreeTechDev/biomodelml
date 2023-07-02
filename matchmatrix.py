@@ -23,12 +23,13 @@ def main(fasta_file: str, output_path: str, seq_type: str):
                 (s.description, s.description, s.seq, s.seq, max_window, output_path, seq_type)
             )
         print(f"starting to build image matrix for {len(to_run)} sequences")
-
         try:
             with ThreadPoolExecutor(max_workers=procs) as pool:
-                [pool.submit(save_image_by_matrices, *data) for data in to_run]
-        except:
+                futures = [pool.submit(save_image_by_matrices, *data) for data in to_run]
+            [f.result() for f in futures]
+        except Exception as e:
             shutil.rmtree(outpath)
+            raise e
 
 if __name__ == "__main__":
     fasta_file = sys.argv[1]

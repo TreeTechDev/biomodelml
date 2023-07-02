@@ -12,7 +12,7 @@ class ControlVariant(Variant):
     def __init__(self, fasta_file: str, sequence_type: str):
         super().__init__(fasta_file, sequence_type)
         if sequence_type == self.nucleotide_type:
-            mapper = sequence.NucleotideSequence
+            mapper = lambda x: sequence.NucleotideSequence(x, True)
         else:
             mapper = sequence.ProteinSequence
         self._sequences = list(map(mapper, self._sequences))
