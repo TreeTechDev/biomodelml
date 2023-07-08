@@ -86,13 +86,13 @@ afproject:
 	TYPE="P" SEQ="ST009" $(MAKE) run
 	TYPE="P" SEQ="ST010" $(MAKE) run
 	TYPE="P" SEQ="ST011" $(MAKE) run
-	TYPE="P" SEQ="swisstree" $(MAKE) run
+	TYPE="P" SEQ="ST012" $(MAKE) run
 	TYPE="N" SEQ="fish_mito" $(MAKE) run
 
 
 cluster:
 	CMD="bash run_blastn.sh 11" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
-	CMD="bash run_blastp.sh 3" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
+	CMD="bash run_blastp.sh 4" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
 	SEQ="orthologs_androglobin" TYPE="P" $(MAKE) sanitize matches
 	SEQ="orthologs_cytoglobin" TYPE="P" $(MAKE) sanitize matches
 	SEQ="orthologs_myoglobin" TYPE="P" $(MAKE) sanitize matches

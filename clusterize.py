@@ -36,13 +36,6 @@ item_list = []
 for types in TYPES_DICT.keys():
     item_list += [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
-rssim = ResizedSSIMVariant
-rmsssim = ResizedSSIMMultiScaleVariant
-wmsssim = WindowedSSIMMultiScaleVariant
-gssim = GreedySSIMVariant
-ussim = UnrestrictedSSIMVariant
-uqi = UQIVariant
-
 ALGORITMS = (
     ResizedSSIMVariant,
     ResizedSSIMMultiScaleVariant,
