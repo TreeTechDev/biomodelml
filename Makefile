@@ -73,7 +73,7 @@ exp_by_type:
 
 experiments:
 	TYPE="P" $(MAKE) exp_by_type
-	TYPE="N" $(MAKE) exp_by_type
+	# TYPE="N" $(MAKE) exp_by_type
 
 afproject:
 	TYPE="P" SEQ="ST001" $(MAKE) run

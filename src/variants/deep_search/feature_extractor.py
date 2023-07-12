@@ -10,6 +10,10 @@ class FeatureExtractor:
         self.model = VGG16(
             include_top=False, input_shape=self._input_shape, weights='imagenet')
 
+    @property
+    def item_size(self):
+        return numpy.prod(self.model.output.shape[1:])
+
     def _upscale(self, img: numpy.ndarray) -> numpy.ndarray:
         return cv2.resize(
             img,

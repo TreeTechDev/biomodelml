@@ -16,7 +16,7 @@ from src.variants.uqi import UQIVariant
 
 TYPES_DICT = dict(P=dict(), N=dict())
 PARTIAL = True
-IMG_FOLDER = "data/images/{}/"
+IMG_FOLDER = "data/images"
 
 def read_all_images(folders: List[str]):
     img_dict = TYPES_DICT.copy()
@@ -28,12 +28,12 @@ def read_all_images(folders: List[str]):
     return img_dict
 
 items = read_all_images([
-    IMG_FOLDER + "/indelible/full/",
-    IMG_FOLDER + "/orthologs_androglobin/full/",
-    IMG_FOLDER + "/orthologs_cytoglobin/full/",
-    IMG_FOLDER + "/orthologs_hemoglobin_beta/full/",
-    IMG_FOLDER + "/orthologs_myoglobin/full/",
-    IMG_FOLDER + "/orthologs_neuroglobin/full/"
+    IMG_FOLDER + "/{}/indelible/full/",
+    IMG_FOLDER + "/{}/orthologs_androglobin/full/",
+    IMG_FOLDER + "/{}/orthologs_cytoglobin/full/",
+    IMG_FOLDER + "/{}/orthologs_hemoglobin_beta/full/",
+    IMG_FOLDER + "/{}/orthologs_myoglobin/full/",
+    IMG_FOLDER + "/{}/orthologs_neuroglobin/full/"
 ])
 
 
@@ -42,7 +42,7 @@ for types in TYPES_DICT.keys():
     item_list += [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 ALGORITMS = (
-    DeepSearchVariant,
+    DeepSearchVariant(image_folder=IMG_FOLDER).load_or_build(item_list),
     ResizedSSIMVariant,
     ResizedSSIMMultiScaleVariant,
     WindowedSSIMMultiScaleVariant,
@@ -56,7 +56,7 @@ def _metric(img_a, img_b, types, alg_name):
     results = dict()
     for alg in ALGORITMS:
         if alg.name == alg_name:
-            results[alg.name] = alg.from_name_list(item_list, sequence_type=types, image_folder=IMG_FOLDER).calc_alg(img_a, img_b)
+            results[alg.name] = alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
     return results
 
 def _fit(item_a, item_b, types, alg_name):

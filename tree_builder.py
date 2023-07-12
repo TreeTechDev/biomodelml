@@ -21,15 +21,15 @@ from src.variants.deep_search.variant import DeepSearchVariant
 def main(fasta_file: str, output_path: str, sequence_type: str, image_path: Optional[str] = None):
     Experiment(
         Path(output_path),
-        ControlVariant(fasta_file, sequence_type),
-        SmithWatermanVariant(fasta_file, sequence_type),
-        NeedlemanWunschVariant(fasta_file, sequence_type),
-        ResizedSSIMVariant(fasta_file, sequence_type, image_path),
-        ResizedSSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
-        WindowedSSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
-        GreedySSIMVariant(fasta_file, sequence_type, image_path),
-        UnrestrictedSSIMVariant(fasta_file, sequence_type, image_path),
-        UQIVariant(fasta_file, sequence_type, image_path),
+        # ControlVariant(fasta_file, sequence_type),
+        # SmithWatermanVariant(fasta_file, sequence_type),
+        # NeedlemanWunschVariant(fasta_file, sequence_type),
+        # ResizedSSIMVariant(fasta_file, sequence_type, image_path),
+        # ResizedSSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
+        # WindowedSSIMMultiScaleVariant(fasta_file, sequence_type, image_path),
+        # GreedySSIMVariant(fasta_file, sequence_type, image_path),
+        # UnrestrictedSSIMVariant(fasta_file, sequence_type, image_path),
+        # UQIVariant(fasta_file, sequence_type, image_path),
         DeepSearchVariant(fasta_file, sequence_type, image_path)
     ).run_and_save()
 
