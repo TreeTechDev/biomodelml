@@ -105,4 +105,4 @@ cluster:
 	SEQ="orthologs_neuroglobin" TYPE="N" $(MAKE) sanitize matches
 	SEQ="orthologs_hemoglobin_beta" TYPE="N" $(MAKE) sanitize matches
 	SEQ="indelible" TYPE="N" $(MAKE) sanitize matches
-	CMD="python clusterize.py $(SEQ)" DOCKER_FLAGS="-w $(APP_DIR)" $(MAKE) run-docker
+	CMD="python clusterize.py" DOCKER_FLAGS="-it -w $(APP_DIR)" $(MAKE) run-docker

@@ -82,6 +82,7 @@ class SSIMVariant(Variant):
         with RecursionContext():
             result, debugs = self._match_images(img, other)
             img_debugs = [ImgDebugs(img1, img2, debugs)] if debugs else []
+        print(f"{img1} and {img2} done with score {result}")
         return result, img_debugs
 
     def calc_alg(self, img_name1: str, img_name2: str) -> float:

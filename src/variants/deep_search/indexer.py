@@ -1,4 +1,5 @@
 import os
+import glob
 import pandas
 import numpy
 from typing import List
@@ -12,8 +13,8 @@ class Indexer:
     def __init__(self, image_folder: str, seq_names: str, feature_extractor: FeatureExtractor):
         self.image_list = []
         self._index = None
-        for path in os.listdir(image_folder):
-            if path.split(".")[-1] in ("png", "jpg", "jpeg") and ".".join(path.split(".")[:-1]) in seq_names:
+        for path in glob.iglob(f'{image_folder}/**/*.png', recursive=True):
+            if os.path.basename(".".join(path.split(".")[:-1])) in seq_names:
                 self.image_list.append(os.path.join(image_folder, path))
         self._feature_extractor = feature_extractor
 
@@ -43,3 +44,8 @@ class Indexer:
             raise Exception("Run build first")
         return self._index.get_nns_by_item(
             item, -1, search_k=-1, include_distances=True)
+
+    def get_distance(self, item1: int, item2: int) -> float:
+        if not self._index:
+            raise Exception("Run build first")
+        return self._index.get_distance(item1, item2)

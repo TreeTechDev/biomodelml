@@ -16,7 +16,7 @@ class UQIVariant(Variant):
     def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = ""):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
-        self._filter_size = 11 if sequence_type == "N" else 3
+        self._filter_size = 11 if sequence_type == "N" else 4
 
     
     def _read_image(self, img_name: str) -> numpy.ndarray:

@@ -7,7 +7,7 @@ from biotite.sequence.align import SubstitutionMatrix
 from biotite.sequence import NucleotideSequence, ProteinSequence
 from src.submatrix import SNEATH, PROTSUB
 
-NUCLEOTIDES = NucleotideSequence.alphabet_amb.get_symbols()
+NUCLEOTIDES = NucleotideSequence.alphabet_unamb.get_symbols()
 HYDROPHILIC = "STYNQDE"
 HYDROPHOBIC = "GAVCPLIMWFKRH"
 ALL_PROTEINS = ProteinSequence.alphabet.get_symbols()
@@ -50,11 +50,12 @@ def _weight_ptns(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
 def _weight_seqs(seq1: Seq, seq2: Seq, rows: numpy.ndarray, max_window: int):
     indexes = dict()
     for line, letter in enumerate(seq2):
-        if (letter not in indexes) and (letter in NUCLEOTIDES):
-            indexes[letter] = numpy.where(
-                numpy.array(list(seq1)) == seq2[line])[0]
-        idx = indexes[letter]
-        rows[line, idx] = max_window
+        if (letter in NUCLEOTIDES):
+            if (letter not in indexes):
+                indexes[letter] = numpy.where(
+                    numpy.array(list(seq1)) == seq2[line])[0]
+            idx = indexes[letter]
+            rows[line, idx] = max_window
     return rows
 
 
