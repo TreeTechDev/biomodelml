@@ -1,6 +1,7 @@
 import numpy
 from functools import cache
 from typing import List
+from os.path import basename
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
 from src.variants.deep_search.feature_extractor import FeatureExtractor
@@ -25,13 +26,14 @@ class DeepSearchVariant(Variant):
 
     def calc_alg(self, img_name1: str, img_name2: str) -> float:
         self._build_once()
-        img1_idx = self._names.index(img_name1)
-        img2_idx = self._names.index(img_name2)
+        img1_idx = self._names.index(".".join(basename(img_name1).split(".")[:-1]))
+        img2_idx = self._names.index(".".join(basename(img_name2).split(".")[:-1]))
         result = self.indexer.get_distance(img1_idx, img2_idx)
         print(f"{img_name1} and {img_name2} done with score {result}")
         return result
     
-    def load_or_build(self, names):
+    def cluster_build(self, names):
+        self._input_shape = (1000, 1000, 3)  # for 2000 indexer is really big
         self._names = names
         self._build_once()
         return self
@@ -40,7 +42,7 @@ class DeepSearchVariant(Variant):
         return self
 
     def build_matrix(self) -> DistanceStruct:
-        self.load_or_build(self._names)
+        self._build_once()
         names = [".".join(name.split("/")[-1].split(".")[:-1]) for name in self.indexer.image_list]
         diff = set(self._names).difference(set(names))
         if diff:

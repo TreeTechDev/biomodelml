@@ -2,7 +2,9 @@ import os
 import glob
 import pandas
 import numpy
+import hashlib
 from typing import List
+from multiprocessing import cpu_count
 from src.variants.deep_search.feature_extractor import FeatureExtractor
 from annoy import AnnoyIndex
 
@@ -13,7 +15,8 @@ class Indexer:
     def __init__(self, image_folder: str, seq_names: str, feature_extractor: FeatureExtractor):
         self.image_list = []
         self._index = None
-        self._idx_path = os.path.join(image_folder, str(hash(".".join(sorted(seq_names))))+".ann")
+        self._cores = cpu_count()
+        self._idx_path = os.path.join(image_folder, hashlib.md5(".".join(sorted(seq_names)).encode()).hexdigest()+".ann")
         for path in glob.iglob(f'{image_folder}/**/*.png', recursive=True):
             if os.path.basename(".".join(path.split(".")[:-1])) in seq_names:
                 self.image_list.append(path)
@@ -32,7 +35,7 @@ class Indexer:
         for i, v in zip(data.index, data['features']):
             self._index.add_item(i, v)
         trees = len(data["features"])
-        self._index.build(trees, n_jobs=-1)
+        self._index.build(trees, n_jobs=self._cores)
         self._index.save(self._idx_path)
 
     def load_or_build(self):

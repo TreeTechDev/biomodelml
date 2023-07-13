@@ -42,7 +42,7 @@ for types in TYPES_DICT.keys():
     item_list += [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 ALGORITMS = (
-    DeepSearchVariant(image_folder=IMG_FOLDER).load_or_build(item_list),
+    DeepSearchVariant(image_folder=IMG_FOLDER).cluster_build(item_list),
     ResizedSSIMVariant,
     ResizedSSIMMultiScaleVariant,
     WindowedSSIMMultiScaleVariant,
@@ -69,9 +69,6 @@ def save_checkpoint(ann):
     with open("data/cluster_sim.pkl", 'wb') as f:
         pickle.dump(all_hash, f)
 
-    with open("data/backup_cluster.pkl", 'wb') as f:
-        pickle.dump(ann, f)
-
 def checkpoint(ann):
     def internal_check(*args):
         save_checkpoint(ann)
@@ -97,7 +94,7 @@ class AdaptedNearestNeighbors():
             item_by_item = []
             for ia, ib in itertools.combinations(items[types].values(), 2):
                 for alg in self._algs:
-                    if not self._i_and_d[types].get(alg.name, {}).get(ia, {}).get(ib, {}):
+                    if self._i_and_d[types].get(alg.name, {}).get(ia, {}).get(ib, {}) in ({}, None):
                         item_by_item.append((ia, ib, types, alg.name))
             print(f"filtered and combined pairwise now just with {len(item_by_item)} combinations for {types}")
             with Pool(self._nproc) as pool:
@@ -107,6 +104,12 @@ class AdaptedNearestNeighbors():
             for i, (item_a, item_b, types, alg_name) in enumerate(item_by_item):
                 item_a = str(item_a)
                 item_b = str(item_b)
+                if not self._i_and_d[types].get(alg_name):
+                    self._i_and_d[types][alg_name] = {item_a: {}}
+                if not self._i_and_d[types][alg_name].get(item_a):
+                    self._i_and_d[types][alg_name][item_a] = dict()
+                if not self._i_and_d[types][alg_name].get(item_b):
+                    self._i_and_d[types][alg_name][item_b] = dict()
                 self._i_and_d[types][alg_name][item_a][item_b] = self._i_and_d[types][alg_name][item_b][item_a] = result[i][alg_name]
     
 
