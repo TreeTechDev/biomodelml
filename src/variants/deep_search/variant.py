@@ -21,7 +21,7 @@ class DeepSearchVariant(Variant):
     def _build_once(self):
         self._names = sorted(self._names)
         features = FeatureExtractor(self._input_shape)
-        self.indexer = Indexer(self._image_folder, self._names, features)
+        self.indexer = Indexer(self._image_folder, self._names.copy(), features)
         self.indexer.load_or_build()
 
     def calc_alg(self, img_name1: str, img_name2: str) -> float:

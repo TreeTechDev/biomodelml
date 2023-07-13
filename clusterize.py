@@ -42,13 +42,13 @@ for types in TYPES_DICT.keys():
     item_list += [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
 
 ALGORITMS = (
-    DeepSearchVariant(image_folder=IMG_FOLDER).cluster_build(item_list),
     ResizedSSIMVariant,
     ResizedSSIMMultiScaleVariant,
     WindowedSSIMMultiScaleVariant,
     GreedySSIMVariant,
     UnrestrictedSSIMVariant,
-    UQIVariant
+    UQIVariant,
+    DeepSearchVariant(image_folder=IMG_FOLDER).cluster_build(item_list)
 )
 
 
@@ -68,6 +68,26 @@ def save_checkpoint(ann):
     all_hash = ann._i_and_d
     with open("data/cluster_sim.pkl", 'wb') as f:
         pickle.dump(all_hash, f)
+    with open("data/final_cluster.csv", "w") as f:
+        f.write("Type,Algorithm,Name,Family,Right,Total\n")
+        for t in all_hash:
+            for alg in all_hash[t]:
+                for k, v in all_hash[t][alg].items():
+                    family = k.split("/")[-3]
+                    name = k.split("/")[-1]
+                    is_right = 0
+                    total = 0
+                    sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
+                    for i, v in sorted_items:
+                        if family == i.split("/")[-3]:
+                            total += 1
+                    for i, v in sorted_items[:total]:
+                        if family == i.split("/")[-3]:
+                            is_right += 1
+                    result = f"{t},{alg},{name},{family},{is_right},{total}\n"
+                    print(result)
+                    with open("data/final_cluster.csv", "a") as f:
+                        f.write(result)
 
 def checkpoint(ann):
     def internal_check(*args):
@@ -125,27 +145,5 @@ for sig in (SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM):
     signal(sig, checkpoint(ann))
 
 ann.fit(items)
-all_hash = ann._i_and_d
 
-checkpoint(ann)()
-
-with open("data/final_cluster.csv", "w") as f:
-    f.write("Type,Algorithm,Name,Family,Right,Total\n")
-    for t in all_hash:
-        for alg in all_hash[t]:
-            for k, v in all_hash[t][alg].items():
-                family = k.split("/")[-3]
-                name = k.split("/")[-1]
-                is_right = 0
-                total = 0
-                sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
-                for i, v in sorted_items:
-                    if family == i.split("/")[-3]:
-                        total += 1
-                for i, v in sorted_items[:total]:
-                    if family == i.split("/")[-3]:
-                        is_right += 1
-                result = f"{t},{alg},{name},{family},{is_right},{total}\n"
-                print(result)
-                with open("data/final_cluster.csv", "a") as f:
-                    f.write(result) 
+save_checkpoint(ann) 

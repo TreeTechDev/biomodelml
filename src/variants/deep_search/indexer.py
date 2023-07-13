@@ -39,6 +39,7 @@ class Indexer:
         self._index.save(self._idx_path)
 
     def load_or_build(self):
+        print(self._idx_path)
         if os.path.exists(self._idx_path):
             print("loading index...")
             self._index = AnnoyIndex(self._feature_extractor.item_size, self.distance_type)
