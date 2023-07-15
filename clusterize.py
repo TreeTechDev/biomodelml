@@ -85,7 +85,6 @@ def save_checkpoint(ann):
                         if family == i.split("/")[-3]:
                             is_right += 1
                     result = f"{t},{alg},{name},{family},{is_right},{total}\n"
-                    print(result)
                     with open("data/final_cluster.csv", "a") as f:
                         f.write(result)
 
@@ -111,26 +110,29 @@ class AdaptedNearestNeighbors():
         print(f"training for {len(items['P'])} protein and {len(items['N'])} nucleotide sequences with {len(self._algs)} algoritms")
         for types in ["P", "N"]:
             print(f"doing for {types}")
-            item_by_item = []
-            for ia, ib in itertools.combinations(items[types].values(), 2):
-                for alg in self._algs:
+            item_by_alg = dict()
+            for alg in self._algs:
+                item_by_alg[alg] = list()
+                for ia, ib in itertools.combinations(items[types].values(), 2):
                     if self._i_and_d[types].get(alg.name, {}).get(ia, {}).get(ib, {}) in ({}, None):
-                        item_by_item.append((ia, ib, types, alg.name))
-            print(f"filtered and combined pairwise now just with {len(item_by_item)} combinations for {types}")
-            with Pool(self._nproc) as pool:
-                result = pool.starmap(
-                    _fit,
-                    item_by_item)
-            for i, (item_a, item_b, types, alg_name) in enumerate(item_by_item):
-                item_a = str(item_a)
-                item_b = str(item_b)
-                if not self._i_and_d[types].get(alg_name):
-                    self._i_and_d[types][alg_name] = {item_a: {}}
-                if not self._i_and_d[types][alg_name].get(item_a):
-                    self._i_and_d[types][alg_name][item_a] = dict()
-                if not self._i_and_d[types][alg_name].get(item_b):
-                    self._i_and_d[types][alg_name][item_b] = dict()
-                self._i_and_d[types][alg_name][item_a][item_b] = self._i_and_d[types][alg_name][item_b][item_a] = result[i][alg_name]
+                        item_by_alg[alg].append((ia, ib, types, alg.name))
+            print(f"filtered and combined pairwise now just with {len(item_by_alg.values())} combinations for {types}")
+            for alg in item_by_alg:
+                item_by_item = item_by_alg[alg]
+                with Pool(self._nproc) as pool:
+                    result = pool.starmap(
+                        _fit,
+                        item_by_item)
+                for i, (item_a, item_b, types, alg_name) in enumerate(item_by_item):
+                    item_a = str(item_a)
+                    item_b = str(item_b)
+                    if not self._i_and_d[types].get(alg_name):
+                        self._i_and_d[types][alg_name] = {item_a: {}}
+                    if not self._i_and_d[types][alg_name].get(item_a):
+                        self._i_and_d[types][alg_name][item_a] = dict()
+                    if not self._i_and_d[types][alg_name].get(item_b):
+                        self._i_and_d[types][alg_name][item_b] = dict()
+                    self._i_and_d[types][alg_name][item_a][item_b] = self._i_and_d[types][alg_name][item_b][item_a] = result[i][alg_name]
     
 
 
