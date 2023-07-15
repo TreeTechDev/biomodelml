@@ -3,9 +3,10 @@ import sys
 import itertools
 import pickle
 from pathlib import Path
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool
 from typing import List
-from signal import signal, SIGABRT, SIGSTOP, SIGILL, SIGINT, SIGSEGV, SIGTERM
+from signal import signal, SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM
 from src.variants.deep_search.variant import DeepSearchVariant
 from src.variants.resized_ssim import ResizedSSIMVariant
 from src.variants.resized_ssim_multiscale import ResizedSSIMMultiScaleVariant
@@ -24,7 +25,8 @@ def read_all_images(folders: List[str]):
         for t in img_dict.keys():
             formated_folder = folder.format(t)
             for f in os.listdir(formated_folder):
-                img_dict[t][f"{formated_folder.split('/')[-2]}_{f}"] = os.path.join(formated_folder, f)
+                if f.endswith(".png"):
+                    img_dict[t][f"{formated_folder.split('/')[-2]}_{f}"] = os.path.join(formated_folder, f)
     return img_dict
 
 items = read_all_images([
@@ -53,20 +55,17 @@ ALGORITMS = (
 
 
 def _metric(img_a, img_b, types, alg_name):
-    results = dict()
     for alg in ALGORITMS:
         if alg.name == alg_name:
-            result = alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
-    return result
+            return alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
 
 def _fit(item_a, item_b, types, alg_name):
-    print(str(item_a),str(item_b), alg_name)
     return (item_a, item_b, types, alg_name, _metric(item_a, item_b, types, alg_name))
-
 
 def save_checkpoint(ann):
     print("saving... please wait")
     all_hash = ann._i_and_d
+
     with open("data/cluster_sim.pkl", 'wb') as f:
         pickle.dump(all_hash, f)
     with open("data/final_cluster.csv", "w") as f:
@@ -102,7 +101,7 @@ class AdaptedNearestNeighbors():
         self._algs = algs
         self._i_and_d = i_and_d
         self._nproc = nproc
-    
+
     def _save_to_obj(self, item_by_item):
         item_a, item_b, types, alg_name, result = item_by_item
         item_a = str(item_a)
@@ -132,10 +131,9 @@ class AdaptedNearestNeighbors():
             print(f"filtered and combined pairwise now just with {len(item_by_item)} combinations for {types}")
             with Pool(self._nproc) as pool:
                 results = []
-                r = pool.starmap_async(
-                    _fit,
-                    item_by_item, callback=self._save_to_obj)
-                results.append(r)
+                for i in item_by_item:
+                    r = pool.apply_async(_fit, i, callback=self._save_to_obj)
+                    results.append(r)
                 for r in results:
                     r.wait()
 
