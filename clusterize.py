@@ -48,7 +48,7 @@ ALGORITMS = (
     GreedySSIMVariant,
     UnrestrictedSSIMVariant,
     UQIVariant,
-    DeepSearchVariant(image_folder=IMG_FOLDER).cluster_build(item_list)
+    # DeepSearchVariant(image_folder=IMG_FOLDER).cluster_build(item_list)
 )
 
 
@@ -56,15 +56,16 @@ def _metric(img_a, img_b, types, alg_name):
     results = dict()
     for alg in ALGORITMS:
         if alg.name == alg_name:
-            results[alg.name] = alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
-    return results
+            result = alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
+    return result
 
 def _fit(item_a, item_b, types, alg_name):
     print(str(item_a),str(item_b), alg_name)
-    return _metric(item_a, item_b, types, alg_name)
+    return (item_a, item_b, types, alg_name, _metric(item_a, item_b, types, alg_name))
 
 
 def save_checkpoint(ann):
+    print("saving... please wait")
     all_hash = ann._i_and_d
     with open("data/cluster_sim.pkl", 'wb') as f:
         pickle.dump(all_hash, f)
@@ -101,6 +102,19 @@ class AdaptedNearestNeighbors():
         self._algs = algs
         self._i_and_d = i_and_d
         self._nproc = nproc
+    
+    def _save_to_obj(self, item_by_item):
+        item_a, item_b, types, alg_name, result = item_by_item
+        item_a = str(item_a)
+        item_b = str(item_b)
+        if not self._i_and_d[types].get(alg_name):
+            self._i_and_d[types][alg_name] = {item_a: {}}
+        if not self._i_and_d[types][alg_name].get(item_a):
+            self._i_and_d[types][alg_name][item_a] = dict()
+        if not self._i_and_d[types][alg_name].get(item_b):
+            self._i_and_d[types][alg_name][item_b] = dict()
+        self._i_and_d[types][alg_name][item_a][item_b] = self._i_and_d[types][alg_name][item_b][item_a] = result
+        print(f"checkpoint ready to use for {alg_name} with {item_a} and {item_b} with score {result}")
 
     def fit(self, items: dict):
         self._items = items
@@ -110,29 +124,21 @@ class AdaptedNearestNeighbors():
         print(f"training for {len(items['P'])} protein and {len(items['N'])} nucleotide sequences with {len(self._algs)} algoritms")
         for types in ["P", "N"]:
             print(f"doing for {types}")
-            item_by_alg = dict()
+            item_by_item = list()
             for alg in self._algs:
-                item_by_alg[alg] = list()
                 for ia, ib in itertools.combinations(items[types].values(), 2):
                     if self._i_and_d[types].get(alg.name, {}).get(ia, {}).get(ib, {}) in ({}, None):
-                        item_by_alg[alg].append((ia, ib, types, alg.name))
-            print(f"filtered and combined pairwise now just with {len(item_by_alg.values())} combinations for {types}")
-            for alg in item_by_alg:
-                item_by_item = item_by_alg[alg]
-                with Pool(self._nproc) as pool:
-                    result = pool.starmap(
-                        _fit,
-                        item_by_item)
-                for i, (item_a, item_b, types, alg_name) in enumerate(item_by_item):
-                    item_a = str(item_a)
-                    item_b = str(item_b)
-                    if not self._i_and_d[types].get(alg_name):
-                        self._i_and_d[types][alg_name] = {item_a: {}}
-                    if not self._i_and_d[types][alg_name].get(item_a):
-                        self._i_and_d[types][alg_name][item_a] = dict()
-                    if not self._i_and_d[types][alg_name].get(item_b):
-                        self._i_and_d[types][alg_name][item_b] = dict()
-                    self._i_and_d[types][alg_name][item_a][item_b] = self._i_and_d[types][alg_name][item_b][item_a] = result[i][alg_name]
+                        item_by_item.append((ia, ib, types, alg.name))
+            print(f"filtered and combined pairwise now just with {len(item_by_item)} combinations for {types}")
+            with Pool(self._nproc) as pool:
+                results = []
+                r = pool.starmap_async(
+                    _fit,
+                    item_by_item, callback=self._save_to_obj)
+                results.append(r)
+                for r in results:
+                    r.wait()
+
     
 
 
