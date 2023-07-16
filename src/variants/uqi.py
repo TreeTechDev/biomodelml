@@ -4,7 +4,6 @@ import numpy
 import cv2
 from typing import Tuple
 from sewar.full_ref import uqi
-from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool
 from src.variants.variant import Variant
 from src.structs import DistanceStruct
@@ -14,9 +13,11 @@ class UQIVariant(Variant):
 
     name = "Universal Quality Index"
 
-    def __init__(self, fasta_file: str, sequence_type: str, image_folder: str):
+    def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = ""):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
+        self._filter_size = 11 if sequence_type == "N" else 4
+
     
     def _read_image(self, img_name: str) -> numpy.ndarray:
         return cv2.imread(
@@ -54,9 +55,9 @@ class UQIVariant(Variant):
         return (max_image, new_image)
 
     def calc_alg(self, img_name1: str, img_name2: str) -> float:
-        return abs(uqi(
+        return uqi(
             *self._upscale_images(
-                self._read_image(img_name1), self._read_image(img_name2)), 11))
+                self._read_image(img_name1), self._read_image(img_name2)), self._filter_size)
 
     def build_matrix(self) -> DistanceStruct:
         files = os.listdir(self._image_folder)
@@ -77,7 +78,7 @@ class UQIVariant(Variant):
             idx1 = img1.split('.')[0]
             with Pool(threads) as pool:
                 result = pool.starmap(
-                    self._calc_uqi,
+                    self.calc_alg,
                     [(img1, img2) for img2 in files[idx:]]
                 )
             if last_ids:
@@ -87,4 +88,4 @@ class UQIVariant(Variant):
                 df.loc[idx1, :] = result
             last_ids.append(idx1)
         return DistanceStruct(
-            names=indexes, matrix=1.0-df.to_numpy(numpy.float64))
+            names=indexes, matrix=abs(1.0-df.to_numpy(numpy.float64)))

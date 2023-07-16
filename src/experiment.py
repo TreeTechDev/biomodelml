@@ -29,6 +29,19 @@ class Experiment:
             except Exception:
                 print(traceback.format_exc())
         return self
+    
+    def run_and_save(self):
+        fig = pyplot.figure(figsize=(12.0, 12.0))
+        for variant in self._variants:
+            try:
+                distances = variant.build_matrix()
+                tree_struct = TreeStruct(
+                    name=variant.name, distances=distances,
+                    tree=phylo.neighbor_joining(distances.matrix))
+                self._save_all(fig, tree_struct)
+                print(f"{variant.name} done!")
+            except Exception:
+                print(traceback.format_exc())        
 
     def _save_distance_matrix(self, tree_struct: TreeStruct):
         pandas.DataFrame(
@@ -84,11 +97,14 @@ class Experiment:
         pyplot.savefig(self._output_path / f"{tree_struct.name}.png")
         ax.clear()
 
+    def _save_all(self, fig: Figure, tree_struct: TreeStruct):
+        self._save_img_debugs(tree_struct)
+        self._save_align(tree_struct)
+        self._save_newick_tree(tree_struct)
+        self._save_distance_matrix(tree_struct)
+        self._save_plot_tree(fig, tree_struct)
+
     def save(self):
         fig = pyplot.figure(figsize=(12.0, 12.0))
         for tree_struct in self._trees:
-            self._save_img_debugs(tree_struct)
-            self._save_align(tree_struct)
-            self._save_newick_tree(tree_struct)
-            self._save_distance_matrix(tree_struct)
-            self._save_plot_tree(fig, tree_struct)
+            self._save_all(fig, tree_struct)

@@ -1,134 +1,155 @@
 import os
-import tensorflow
-import numpy
-import cv2
+import sys
 import itertools
 import pickle
 from pathlib import Path
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool
 from typing import List
-from collections import OrderedDict
+from signal import signal, SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM
+from src.variants.deep_search.variant import DeepSearchVariant
+from src.variants.resized_ssim import ResizedSSIMVariant
+from src.variants.resized_ssim_multiscale import ResizedSSIMMultiScaleVariant
+from src.variants.windowed_ssim_multiscale import WindowedSSIMMultiScaleVariant
+from src.variants.greedy_ssim import GreedySSIMVariant
+from src.variants.unrestricted_ssim import UnrestrictedSSIMVariant
+from src.variants.uqi import UQIVariant
 
-folder = Path("/tmp")
-def read_image(img_folder: str, img_name: str):
-    im = cv2.imread(os.path.join(
-                    img_folder, img_name))
-    path = folder / img_folder / img_name
-    path.parent.mkdir(exist_ok=True, parents=True)
-    with open(path, "wb") as f:
-        numpy.save(f, cv2.cvtColor(im, cv2.COLOR_BGR2RGB))   # BGR -> RGB
-    return path
+TYPES_DICT = dict(P=dict(), N=dict())
+PARTIAL = True
+IMG_FOLDER = "data/images"
 
 def read_all_images(folders: List[str]):
-    img_dict = dict()
+    img_dict = TYPES_DICT.copy()
     for folder in folders:
-        for f in os.listdir(folder):
-            img_dict[f"{folder.split('/')[-2]}_{f}"] = read_image(folder, f)
+        for t in img_dict.keys():
+            formated_folder = folder.format(t)
+            for f in os.listdir(formated_folder):
+                if f.endswith(".png"):
+                    img_dict[t][f"{formated_folder.split('/')[-2]}_{f}"] = os.path.join(formated_folder, f)
     return img_dict
 
 items = read_all_images([
-    "data/images/orthologs_androglobin/full/",
-    "data/images/orthologs_cytoglobin/full/",
-    "data/images/orthologs_hemoglobin_beta/full/",
-    "data/images/orthologs_myoglobin/full/",
-    "data/images/orthologs_neuroglobin/full/"
+    IMG_FOLDER + "/{}/indelible/full/",
+    IMG_FOLDER + "/{}/orthologs_androglobin/full/",
+    IMG_FOLDER + "/{}/orthologs_cytoglobin/full/",
+    IMG_FOLDER + "/{}/orthologs_hemoglobin_beta/full/",
+    IMG_FOLDER + "/{}/orthologs_myoglobin/full/",
+    IMG_FOLDER + "/{}/orthologs_neuroglobin/full/"
 ])
 
-from src.variants.ssim import SSIMVariant, DEFAULT_PARAMS, RecursionContext
+
+item_list = []
+for types in TYPES_DICT.keys():
+    item_list += [".".join(name.split("/")[-1].split(".")[:-1]) for name in items[types].values()]
+
+ALGORITMS = (
+    ResizedSSIMVariant,
+    ResizedSSIMMultiScaleVariant,
+    WindowedSSIMMultiScaleVariant,
+    GreedySSIMVariant,
+    UnrestrictedSSIMVariant,
+    UQIVariant,
+    # DeepSearchVariant(image_folder=IMG_FOLDER).cluster_build(item_list)
+)
 
 
-class SSIMSearch(SSIMVariant):
-    def __init__(self, **alg_params):
-        self._alg_params = DEFAULT_PARAMS
-        self._alg_params.update(alg_params)
-        self.filter_size = self._alg_params["filter_size"]
+def _metric(img_a, img_b, types, alg_name):
+    for alg in ALGORITMS:
+        if alg.name == alg_name:
+            return alg.from_name_list(item_list, sequence_type=types).calc_alg(img_a, img_b)
 
-ssim = SSIMSearch(filter_size=6, filter_sigma=0.7)
+def _fit(item_a, item_b, types, alg_name):
+    return (item_a, item_b, types, alg_name, _metric(item_a, item_b, types, alg_name))
 
-def _metric(img_a, img_b):
-    with open(img_a, "rb") as f_a:
-        image_a = tensorflow.expand_dims(tensorflow.convert_to_tensor(numpy.array(numpy.load(f_a))), axis=0)
-    with open(img_b, "rb") as f_b:
-        image_b = tensorflow.expand_dims(tensorflow.convert_to_tensor(numpy.array(numpy.load(f_b))), axis=0)
-    with RecursionContext():
-        return ssim._match_images(image_a, image_b)[0]
+def save_checkpoint(ann):
+    print("saving... please wait")
+    all_hash = ann._i_and_d
 
-def _fit(item_a, item_b):
-    print(str(item_a),str(item_b))
-    return _metric(item_a, item_b)
+    with open("data/cluster_sim.pkl", 'wb') as f:
+        pickle.dump(all_hash, f)
+    with open("data/final_cluster.csv", "w") as f:
+        f.write("Type,Algorithm,Name,Family,Right,Total\n")
+        for t in all_hash:
+            for alg in all_hash[t]:
+                for k, v in all_hash[t][alg].items():
+                    family = k.split("/")[-3]
+                    name = k.split("/")[-1]
+                    is_right = 0
+                    total = 0
+                    sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
+                    for i, v in sorted_items:
+                        if family == i.split("/")[-3]:
+                            total += 1
+                    for i, v in sorted_items[:total]:
+                        if family == i.split("/")[-3]:
+                            is_right += 1
+                    result = f"{t},{alg},{name},{family},{is_right},{total}\n"
+                    with open("data/final_cluster.csv", "a") as f:
+                        f.write(result)
+
+def checkpoint(ann):
+    def internal_check(*args):
+        save_checkpoint(ann)
+        sys.exit(0)
+    return internal_check
 
 
 class AdaptedNearestNeighbors():
-    def __init__(self, nproc=cpu_count()):
+    def __init__(self, algs, i_and_d={}, nproc=cpu_count()):
         self._items = {}
-        self._i_and_d = {}
+        self._algs = algs
+        self._i_and_d = i_and_d
         self._nproc = nproc
+
+    def _save_to_obj(self, item_by_item):
+        item_a, item_b, types, alg_name, result = item_by_item
+        item_a = str(item_a)
+        item_b = str(item_b)
+        if not self._i_and_d[types].get(alg_name):
+            self._i_and_d[types][alg_name] = {item_a: {}}
+        if not self._i_and_d[types][alg_name].get(item_a):
+            self._i_and_d[types][alg_name][item_a] = dict()
+        if not self._i_and_d[types][alg_name].get(item_b):
+            self._i_and_d[types][alg_name][item_b] = dict()
+        self._i_and_d[types][alg_name][item_a][item_b] = self._i_and_d[types][alg_name][item_b][item_a] = result
+        print(f"checkpoint ready to use for {alg_name} with {item_a} and {item_b} with score {result}")
 
     def fit(self, items: dict):
         self._items = items
-        self._i_and_d = {str(k): dict() for k in items.values()}
-        print(f"training for {len(items)}")
-        item_by_item = list(itertools.combinations(items.values(), 2))
-        with Pool(self._nproc) as pool:
-            result = pool.starmap(
-                _fit,
-                item_by_item)
-        for i, (item_a, item_b) in enumerate(item_by_item):
-            item_a = str(item_a)
-            item_b = str(item_b)
-            self._i_and_d[item_a][item_b] = self._i_and_d[item_b][item_a] = result[i]
+        self._i_and_d = self._i_and_d or dict(
+            P={a.name:{str(k): dict() for k in items["P"].values()} for a in self._algs},
+            N={a.name:{str(k): dict() for k in items["N"].values()} for a in self._algs})
+        print(f"training for {len(items['P'])} protein and {len(items['N'])} nucleotide sequences with {len(self._algs)} algoritms")
+        for types in ["P", "N"]:
+            print(f"doing for {types}")
+            item_by_item = list()
+            for alg in self._algs:
+                for ia, ib in itertools.combinations(items[types].values(), 2):
+                    if self._i_and_d[types].get(alg.name, {}).get(ia, {}).get(ib, {}) in ({}, None):
+                        item_by_item.append((ia, ib, types, alg.name))
+            print(f"filtered and combined pairwise now just with {len(item_by_item)} combinations for {types}")
+            with Pool(self._nproc) as pool:
+                results = []
+                for i in item_by_item:
+                    r = pool.apply_async(_fit, i, callback=self._save_to_obj)
+                    results.append(r)
+                for r in results:
+                    r.wait()
+
     
-    def predict(self, item):
-        if self._i_and_d.get(item):
-            close_item = item
-        else:  
-            closest = 0
-            close_item = None
-            for i in self._items:
-                prediction = _metric(self._items[i], item)
-                if prediction >= closest:
-                    closest = prediction
-                    close_item = str(self._items[i])
-                    if closest == 1:
-                        break
-        return OrderedDict(sorted(self._i_and_d[close_item].items(), key=lambda item: item[1]), reverse=True)
 
-ann = AdaptedNearestNeighbors()
 
-if not Path("data/backup_cluster.pkl").exists():
-    ann.fit(items)
-    with open("data/backup_cluster.pkl", 'wb') as f:
-        pickle.dump(ann, f)
+if PARTIAL and Path("data/cluster_sim.pkl").exists():
+    with open("data/cluster_sim.pkl", "rb") as f:
+        all_hash = pickle.load(f)
+        ann = AdaptedNearestNeighbors(ALGORITMS, all_hash)
+else:
+    ann = AdaptedNearestNeighbors(ALGORITMS)
 
-    with open("data/cluster_sim.txt", 'w') as f:
-        f.write(str(ann._i_and_d))
+for sig in (SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM):
+    signal(sig, checkpoint(ann))
 
-with open("data/final_cluster.csv", "w") as f:
-    f.write("Name, Family, Right, Total\n")
-with open("data/cluster_sim.txt", "r") as f:
-    all_hash = eval(f.read())
-    for k, v in all_hash.items():
-        family = k.split("/")[-3]
-        name = k.split("/")[-1]
-        is_right = 0
-        total = 0
-        sorted_items = sorted(v.items(), key=lambda item: item[1], reverse=True) 
-        for i, v in sorted_items:
-            if family == i.split("/")[-3]:
-                total += 1
-        for i, v in sorted_items[:total]:
-            if family == i.split("/")[-3]:
-                is_right += 1
-        result = f"{name},{family},{is_right},{total}\n"
-        print(result)
-        with open("data/final_cluster.csv", "a") as f:
-            f.write(result) 
-#r = ann.predict(read_image("data/images/orthologs_neuroglobin/full/", "prolemur_simus_ENSPSMG00000011006.png"))
+ann.fit(items)
 
-#c=0
-#for i, v in sorted(r.items(), key=lambda item: item[1]):
-#    c+=1
-#    print(i, v)
-#    if c > 20: break
-#with open("r.txt", 'w') as f:
-#    f.write(str(r))
+save_checkpoint(ann) 

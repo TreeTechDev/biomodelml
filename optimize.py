@@ -6,7 +6,7 @@ import optuna
 from ete3 import Tree
 from pathlib import Path
 from src.variants.control import ControlVariant
-from src.variants.ssim_multiscale import SSIMVariant
+from src.variants.resized_ssim_multiscale import ResizedSSIMMultiScaleVariant
 from src.experiment import Experiment
 
 SEED = 42
@@ -14,7 +14,7 @@ SEED = 42
 def control():
     data_path = Path(sys.argv[1])
     seq = sys.argv[2]
-    fasta_file = data_path / f"{seq}.fasta.sanitized"
+    fasta_file = data_path / f"{seq}.fasta.N.sanitized"
     experiment = Experiment(
         data_path,
         ControlVariant(fasta_file, "N")
@@ -42,9 +42,10 @@ def objective(trial):
 
     fasta_file = data_path / f"{seq}.fasta.sanitized"
 
+    #TODO Otimizar para todos os tipos
     experiment = Experiment(
         data_path,
-        SSIMVariant(
+        ResizedSSIMMultiScaleVariant(
             fasta_file,
             "N",
             data_path / "images" / seq / "full",
