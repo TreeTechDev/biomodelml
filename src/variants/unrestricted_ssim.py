@@ -5,6 +5,7 @@ from typing import Tuple, List
 from src.variants.ssim_base import SSIMVariant
 from src.structs import ImgDebug
 
+THRESHOLD = 0
 
 class UnrestrictedSSIMVariant(SSIMVariant):
 
@@ -27,14 +28,14 @@ class UnrestrictedSSIMVariant(SSIMVariant):
             scores = self._call_alg(
                 tensorflow.expand_dims(small_img, axis=0),
                 tensorflow.expand_dims(big_img[s1+i:s2+i, s1+i:s2+i], axis=0))
-            max_scores = tensorflow.math.reduce_mean(scores, axis=1).numpy()
+            max_scores = tensorflow.math.reduce_mean(scores, axis=0).numpy()
             for k, s in enumerate(max_scores):
                 if score_list[k] < s:
                     score_list[k] = s
                     debugs.append(
                         ImgDebug(str(s), str(s1+i+k), str(s1+i+k), str(s2+i), str(s2+i), str(big_img.shape[1])))
         score_array = numpy.array(score_list)
-        idx_without_zero_less = numpy.where(score_array > 0)
+        idx_without_zero_less = numpy.where(score_array > THRESHOLD)
         return numpy.mean(score_array[idx_without_zero_less]), debugs
 
     def _match_images(self, image: Tensor, other: Tensor) -> Tuple[float, List[ImgDebug]]:

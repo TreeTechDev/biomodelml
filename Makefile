@@ -9,7 +9,7 @@ DATA_DIR=$(APP_DIR)/data
 FULL_ROOT_DIR=`pwd`
 FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 
-IMG_NAME="dmvieira/bioinfo2.0"
+IMG_NAME="ghcr.io/biobd/biomodelml"
 
 clean:
 	mkdir -p $(FULL_DATA_DIR)/images
@@ -64,7 +64,7 @@ try:
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
 
 exp_by_type:
-	SEQ="orthologs_hemoglobin_beta" $(MAKE) run
+	# SEQ="orthologs_hemoglobin_beta" $(MAKE) run
 	SEQ="orthologs_myoglobin" $(MAKE) run
 	SEQ="orthologs_neuroglobin" $(MAKE) run
 	SEQ="orthologs_cytoglobin" $(MAKE) run
@@ -73,7 +73,7 @@ exp_by_type:
 
 experiments:
 	TYPE="P" $(MAKE) exp_by_type
-	# TYPE="N" $(MAKE) exp_by_type
+	TYPE="N" $(MAKE) exp_by_type
 
 afproject:
 	TYPE="P" SEQ="ST001" $(MAKE) run

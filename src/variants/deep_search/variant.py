@@ -14,7 +14,7 @@ class DeepSearchVariant(Variant):
     def __init__(self, fasta_file: str = None, sequence_type: str = None, image_folder: str = ""):
         super().__init__(fasta_file, sequence_type)
         self._image_folder = image_folder
-        self._input_shape = (2000, 2000, 3)
+        self._input_shape = (1000, 1000, 3)
         self._sequence_type = sequence_type
     
     @cache
@@ -33,7 +33,6 @@ class DeepSearchVariant(Variant):
         return result
     
     def cluster_build(self, names):
-        self._input_shape = (1000, 1000, 3)  # for 2000 indexer is really big
         self._names = names
         self._build_once()
         return self

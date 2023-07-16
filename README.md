@@ -1,12 +1,12 @@
-# bioinfo2.0
+# BioModelML
 
-In this repository all the results of the Bioinfo2.0 research are gathered, with a special focus on the use of self-comparison matrices for .
+The BioModelML Framework with all research results gathered, with a special focus on the use of self-comparison matrices for DNA, RNA and Proteins.
 
 ## Steps to Run
 
 The repository can be downloaded on the computer by the command:
 
-    git clone https://github.com/BioBD/bioinfo2.0.git
+    git clone https://github.com/BioBD/biomodelml.git
 
 The main branch is with all algorithms, data and jupyter notebook analysis. For specific versions take a look in last section of Readme
 
@@ -43,7 +43,9 @@ The experiments described here are just valid for the algorithms implemented on 
 
 For protein the phisical model is just with one layer:
 
-- BLOSUM62 score to each amino acid combination in matrix
+- **R**: normalized substitution matrix values for ProtSub
+- **G**: the sequence against itself, including inverses
+- **B**: normalized substitution matrix values for Sneath similarity
 
 
 ### Phylogenetic Dendrograms
@@ -67,7 +69,7 @@ Run Jupyter Notebooks inside virtualenv with:
 
     jupyter notebook
 
-## Changes between old Versions of Algorithms
+## Changes between old Versions of Algorithms (Not Recommended)
 
 To change between versions just run the command:
 
