@@ -3,6 +3,7 @@ from tensorflow import Tensor
 from src.variants.ssim_base import SSIMVariant, MAX_POSSIBLE_SCORE
 from src.structs import ImgMap, ImgDebug
 
+THRESHOLD = 0
 
 class GreedySSIMVariant(SSIMVariant):
 
@@ -45,8 +46,11 @@ class GreedySSIMVariant(SSIMVariant):
                 last_line+j, last_line+window,
                 start_score, last_line, step
             )
-            scores.append(last_score)
-            debugs.append(
-                ImgDebug(str(last_score), str(last_line+j), str(last_line),
-                         str(last_line+window), str(mask_size+last_line), str(max_img.shape[1])))
+            if last_score > THRESHOLD:
+                scores.append(last_score)
+                debugs.append(
+                    ImgDebug(str(last_score), str(last_line+j), str(last_line),
+                            str(last_line+window), str(mask_size+last_line), str(max_img.shape[1])))
+            else:
+                last_line = int(debugs[-1].stop_col) if len(debugs) > 0 else 0
         return ImgMap(debugs=debugs, scores=scores)
