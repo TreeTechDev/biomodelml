@@ -32,7 +32,7 @@ For [Indelible](http://abacus.gene.ucl.ac.uk/software/indelible/) dataset, you n
 Before run the experiments make sure you are in **main** branch and run setup commands:
 
     git checkout main
-    make build  # just if change from v1 to others
+    make build
     dvc pull
 
 The experiments described here are just valid for the algorithms implemented on top of SSIM (Structural Similarity Index Measure) and MS-SSIM (MultiScale SSIM): R-SSIM (Resized SSIM), RMS-SSIM (Resized MS-SSIM), WMS-SSIM (Windowed MS-SSIM), GS-SSIM (Greedy Sliced SSIM), and US-SSIM (Unrestricted Sliced SSIM). They are running on last phisical model with the concept of images to represent the self-comparison data in channels. For each channel R, G, B were used:
