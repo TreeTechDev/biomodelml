@@ -25,6 +25,8 @@ clean:
 
 build:
 	docker build . -t $(IMG_NAME)
+
+install:
 	pip install 'dvc<3.0.0' 'dvc-gdrive<3.0.0'
 
 test:

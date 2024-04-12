@@ -12,9 +12,15 @@ The main branch is with all algorithms, data and jupyter notebook analysis. For 
 
 Once downloaded to your computer, you need Docker, Linux or Mac with GNU programs like Make to reproduce the experiments and Python 3.7+ if you want to run the Notebooks. There is a Makefile with all the commands in each version to reproduce the experiments inside a Docker.
 
-Before doing anything when changing versions you need to rebuild the Docker image with the command:
+Make sure you have access permission to github packages. If not, follow these steps:
 
-    make build
+- Get a [classic token](https://docs.github.com/pt/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#como-criar-um-personal-access-token-classic)
+- Set your token in terminal with `CR_PAT=YOUR_TOKEN`
+- Run the command: `echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin`
+
+Run `make install` inside Python virtual environment
+
+Now pull the Docker image with the command `make pull` or build with `make build`. Choose only one (first is faster and safer).
 
 There are only significant changes to the Dockerfile between v1 and v2, so no need to re-image switching between newer versions. Another command that already brings the results and data obtained is:
 
@@ -32,7 +38,7 @@ For [Indelible](http://abacus.gene.ucl.ac.uk/software/indelible/) dataset, you n
 Before run the experiments make sure you are in **main** branch and run setup commands:
 
     git checkout main
-    make build
+    make build  # or pull
     dvc pull
 
 The experiments described here are just valid for the algorithms implemented on top of SSIM (Structural Similarity Index Measure) and MS-SSIM (MultiScale SSIM): R-SSIM (Resized SSIM), RMS-SSIM (Resized MS-SSIM), WMS-SSIM (Windowed MS-SSIM), GS-SSIM (Greedy Sliced SSIM), and US-SSIM (Unrestricted Sliced SSIM). They are running on last phisical model with the concept of images to represent the self-comparison data in channels. For each channel R, G, B were used:
