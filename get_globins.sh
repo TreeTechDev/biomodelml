@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p data
+
 > orthologs_androglobin.fasta
 
 wget -q --header='Content-type:application/json' 'https://rest.ensembl.org/homology/id/ENSG00000118492?type=orthologues;sequence=cdna;aligned=0;target_species=Chlorocebus_sabaeus'
