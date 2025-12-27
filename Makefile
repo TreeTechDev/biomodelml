@@ -66,7 +66,7 @@ try:
 	SEQ="orthologs_neuroglobin" TYPE="N"  CHANNEL="full" $(MAKE) sanitize matches tree-by-channel
 
 exp_by_type:
-	# SEQ="orthologs_hemoglobin_beta" $(MAKE) run
+	SEQ="orthologs_hemoglobin_beta" $(MAKE) run
 	SEQ="orthologs_myoglobin" $(MAKE) run
 	SEQ="orthologs_neuroglobin" $(MAKE) run
 	SEQ="orthologs_cytoglobin" $(MAKE) run
