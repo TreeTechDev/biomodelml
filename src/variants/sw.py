@@ -28,6 +28,10 @@ class SmithWatermanVariant(ControlVariant):
                 score = max(self.call_alg(seq, seq_compare), 0)
                 distances[i, j+i] = score
                 distances[j+i, i] = score
-
+        # Ensure strictly positive distances
+        epsilon = 1e-8
+        distances = numpy.clip(distances, epsilon, None)
+        numpy.fill_diagonal(distances, 0.0)
+        distances = (distances + distances.T) / 2
         return DistanceStruct(
             names=self._names, matrix=distances)

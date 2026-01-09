@@ -34,14 +34,15 @@ class Experiment:
         fig = pyplot.figure(figsize=(12.0, 12.0))
         for variant in self._variants:
             try:
+                print(f"Starting {variant.name}...", flush=True)
                 distances = variant.build_matrix()
                 tree_struct = TreeStruct(
                     name=variant.name, distances=distances,
                     tree=phylo.neighbor_joining(distances.matrix))
                 self._save_all(fig, tree_struct)
-                print(f"{variant.name} done!")
+                print(f"{variant.name} done!", flush=True)
             except Exception:
-                print(traceback.format_exc())        
+                print(traceback.format_exc(), flush=True)        
 
     def _save_distance_matrix(self, tree_struct: TreeStruct):
         pandas.DataFrame(

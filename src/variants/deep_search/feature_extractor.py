@@ -40,14 +40,16 @@ class FeatureExtractor:
         img = self._upscale_with_border(img)
         x = numpy.expand_dims(img, axis=0)
         x = preprocess_input(x)
-        feature = self.model.predict(x)[0]
+        feature = self.model.predict(x, verbose=0)[0]
         return (feature / numpy.linalg.norm(feature)).reshape((feature.size, 1))
 
     def get_feature(self, image_data: List[str]):
         self.image_data = image_data 
         features = []
-        for img_path in self.image_data:
+        total = len(self.image_data)
+        for idx, img_path in enumerate(self.image_data):
             try:
+                print(f"Extracting features [{idx+1}/{total}]: {img_path}", flush=True)
                 feature = self.extract(img=cv2.imread(img_path))
                 features.append(feature)
             except Exception as e:

@@ -39,13 +39,13 @@ class Indexer:
         self._index.save(self._idx_path)
 
     def load_or_build(self):
-        print(f"index path: {self._idx_path}")
+        print(f"index path: {self._idx_path}", flush=True)
         if os.path.exists(self._idx_path):
-            print("loading index...")
+            print("loading index...", flush=True)
             self._index = AnnoyIndex(self._feature_extractor.item_size, self.distance_type)
             self._index.load(self._idx_path)
         else:
-            print("building index...")
+            print("building index...", flush=True)
             self.build()
 
     def build(self) -> numpy.ndarray:

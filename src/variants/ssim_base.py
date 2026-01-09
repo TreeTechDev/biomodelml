@@ -82,7 +82,7 @@ class SSIMVariant(Variant):
         with RecursionContext():
             result, debugs = self._match_images(img, other)
             img_debugs = [ImgDebugs(img1, img2, debugs)] if debugs else []
-        print(f"{img1} and {img2} done with score {result}")
+        print(f"{img1} and {img2} done with score {result}", flush=True)
         return result, img_debugs
 
     def calc_alg(self, img_name1: str, img_name2: str) -> float:
@@ -117,7 +117,14 @@ class SSIMVariant(Variant):
             else:
                 df.loc[idx1, :] = results
             last_ids.append(idx1)
+        matrix = 1.0 - df.to_numpy(numpy.float64)
+        # Ensure strictly positive distances
+        epsilon = 1e-8
+        matrix = numpy.clip(matrix, epsilon, None)
+        numpy.fill_diagonal(matrix, 0.0)
+        # Symmetrize just in case
+        matrix = (matrix + matrix.T) / 2
         return DistanceStruct(
             names=indexes,
-            matrix=1.0-df.to_numpy(numpy.float64),
+            matrix=matrix,
             img_debugs=img_debugs)

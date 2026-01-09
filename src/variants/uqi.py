@@ -87,5 +87,12 @@ class UQIVariant(Variant):
             else:
                 df.loc[idx1, :] = result
             last_ids.append(idx1)
+        matrix = abs(1.0 - df.to_numpy(numpy.float64))
+        # Ensure strictly positive distances
+        epsilon = 1e-8
+        matrix = numpy.clip(matrix, epsilon, None)
+        numpy.fill_diagonal(matrix, 0.0)
+        # Symmetrize just in case
+        matrix = (matrix + matrix.T) / 2
         return DistanceStruct(
-            names=indexes, matrix=abs(1.0-df.to_numpy(numpy.float64)))
+            names=indexes, matrix=matrix)

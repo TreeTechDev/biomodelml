@@ -9,7 +9,12 @@ DATA_DIR=$(APP_DIR)/data
 FULL_ROOT_DIR=`pwd`
 FULL_DATA_DIR=$(FULL_ROOT_DIR)/data
 
-IMG_NAME="ghcr.io/biobd/biomodelml"
+IMG_NAME_BASE="ghcr.io/treetechdev/biomodelml"
+ifeq ($(shell uname -m),arm64)
+IMG_NAME=$(IMG_NAME_BASE):arm
+else
+IMG_NAME=$(IMG_NAME_BASE):latest
+endif
 
 clean:
 	mkdir -p $(FULL_DATA_DIR)/images

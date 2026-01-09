@@ -29,7 +29,7 @@ class DeepSearchVariant(Variant):
         img1_idx = self._names.index(".".join(basename(img_name1).split(".")[:-1]))
         img2_idx = self._names.index(".".join(basename(img_name2).split(".")[:-1]))
         result = self.indexer.get_distance(img1_idx, img2_idx)
-        print(f"{img_name1} and {img_name2} done with score {result}")
+        print(f"{img_name1} and {img_name2} done with score {result}", flush=True)
         return result
     
     def cluster_build(self, names):
@@ -50,5 +50,10 @@ class DeepSearchVariant(Variant):
         for i in range(len(self._names)):
             for j in range(i, len(self._names)):
                 matrix[i,j] = matrix[j,i] = self.indexer.get_distance(i, j)
-
+        # Ensure strictly positive distances
+        epsilon = 1e-8
+        matrix = numpy.clip(matrix, epsilon, None)
+        numpy.fill_diagonal(matrix, 0.0)
+        # Symmetrize just in case
+        matrix = (matrix + matrix.T) / 2
         return DistanceStruct(names=names, matrix=matrix)
